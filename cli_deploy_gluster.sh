@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 source variables
 
 create_key()
@@ -31,4 +32,8 @@ create_headnode()
   masterIP=$(oci compute instance list-vnics --region $region --instance-id $masterID | jq -r '.data[]."public-ip"')
   masterPRVIP=$(oci compute instance list-vnics --region $region --instance-id $masterID | jq -r '.data[]."private-ip"')
 }
+
+create_key
+create_network
+create_headnode
 
