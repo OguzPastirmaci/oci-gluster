@@ -21,10 +21,10 @@ create_network()
 create_headnode()
 {
   #CREATE BLOCK AND HEADNODE
-  BLKSIZE_GB=`expr $BLKSIZE_TB \* 1024`
+  BLKSIZE_GB=`expr $blksize_tb \* 1024`
   for i in `seq 1 $server_nodes`; do
     BV=`oci bv volume create $INFO --display-name "hpc_block-$PRE" --size-in-gbs $BLKSIZE_GB --wait-for-state AVAILABLE | jq -r '.data.id'`;
-    masterID=`oci compute instance launch $INFO --shape "$gluster_server_shape" --display-name "glusterfs-server$i" --image-id $OS --subnet-id $S --private-ip 10.0.$subnet.2 --wait-for-state RUNNING --user-data-file scripts/gluster_configure.sh --ssh-authorized-keys-file $PRE.key.pub | jq -r '.data.id'`;
+    masterID=`oci compute instance launch $INFO --shape "$gluster_server_shape" --display-name "glusterfs-server$i" --image-id $OS --subnet-id $S --private-ip 10.0.$subnet.$i --wait-for-state RUNNING --user-data-file scripts/gluster_configure.sh --ssh-authorized-keys-file $PRE.key.pub | jq -r '.data.id'`;
     attachID=`oci compute volume-attachment attach --region $region --instance-id $masterID --type iscsi --volume-id $BV --wait-for-state ATTACHED | jq -r '.data.id'`;
     attachIQN=`oci compute volume-attachment get --volume-attachment-id $attachID --region $region | jq -r .data.iqn`;
     attachIPV4=`oci compute volume-attachment get --volume-attachment-id $attachID --region $region | jq -r .data.ipv4`;
