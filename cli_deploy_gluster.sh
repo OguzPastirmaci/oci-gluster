@@ -49,7 +49,7 @@ NC=$NC
 export masterIP=$masterIP
 export masterPRVIP=$masterPRVIP
 export USER=$USER
-export compartment_id=$C
+export compartment_id=$compartment_id
 export PRE=$PRE
 export region=$region
 export AD=$AD
@@ -64,9 +64,11 @@ EOF
 
 cat << "EOF" >> removeCluster-$PRE.sh
 echo -e "${RED}Removing: Gluster Nodes ${NC}"
-for instanceid in $(oci compute instance list --region $region -c $C | jq -r '.data[] | select(."display-name" | contains ("'$PRE'")) | .id'); do oci compute instance terminate --region $region --instance-id $instanceid --force; done
+for instanceid in $(oci compute instance list --region $region --compartment-id $compartment_id | jq -r '.data[] | select(."display-name" | contains ("'$PRE'")) | .id'); do oci compute instance terminate --region $region --instance-id $instanceid --force; done
 sleep 60
+echo -e "${RED}Removing: Blocks ${NC}"
 for id in `oci bv volume list --compartment-id $compartment_id --region $region | jq -r '.data[] | select(."display-name" | contains ("'$PRE'")) | .id'`; do oci bv volume delete --region $region --volume-id $id --force; done
+sleep 60
 echo -e "${RED}Removing: Subnet, Route Table, Security List, Gateway, and VCN ${NC}"
 oci network subnet delete --region $region --subnet-id $S --force
 sleep 10
