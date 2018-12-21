@@ -30,7 +30,6 @@ create_headnode()
     for k in `seq 1 $blk_num`; do
       echo -e "${GREEN}CREATING glusterfs-block-$PRE-$i-$k ${NC}"
       BV=`oci bv volume create $INFO --display-name "gluster-block-$PRE-$i-$k" --size-in-gbs $BLKSIZE_GB --wait-for-state AVAILABLE | jq -r '.data.id'`;
-      echo -e "${GREEN}ATTACHING glusterfs-block-$PRE-$i-$k ${NC}"
     done
   done
 
@@ -38,6 +37,8 @@ create_headnode()
 
 attach_blocks()
 {
+  IID=`oci compute instance list --compartment-id $compartment_id --region $region | jq -r '.data[] | select(."display-name" | contains ("'$PRE-$i'")) | .id'`
+  IP=`oci compute instance list-vnics --region $region --instance-id $IID | jq -r '.data[]."public-ip"'`
   echo -e "${GREEN}Adding key to head node${NC}"
   n=0
   until [ $n -ge 5 ]
@@ -46,11 +47,10 @@ attach_blocks()
     n=$[$n+1]
     sleep 60
   done 
-  IID=`oci compute instance list --compartment-id $compartment_id --region $region | jq -r '.data[] | select(."display-name" | contains ("'$PRE-$i'")) | .id'`
-  IP=`oci compute instance list-vnics --region $region --instance-id $IID | jq -r '.data[]."public-ip"'`
+
   ssh -i $PRE.key $USER@$IP 'while [ ! -f /var/log/CONFIG_COMPLETE ]; do sleep 30; echo "Waiting for node to complete configuration: `date +%T`"; done'
   for i in `seq $server_nodes -1 1`; do
-    echo -e "${GREEN}Attaching block volume to head node: ${NC}"date +%T' '%D
+    echo -e "${GREEN}ATTACHING glusterfs-block-$PRE-$i-$k ${NC}"
     IID=`oci compute instance list --compartment-id $compartment_id --region $region | jq -r '.data[] | select(."display-name" | contains ("'$PRE-$i'")) | .id'`
     IP=`oci compute instance list-vnics --region $region --instance-id $IID | jq -r '.data[]."public-ip"'`
     echo
