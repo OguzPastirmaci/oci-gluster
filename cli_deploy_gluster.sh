@@ -5,12 +5,14 @@ source variables
 create_key()
 {
   #CREATE KEY
+  echo CREATING key
   ssh-keygen -f $PRE.key -t rsa -N '' > /dev/null
 }
 
 create_network()
 {
   #CREATE NETWORK
+  echo CREATING glusterfs-network
   V=`oci network vcn create --region $region --cidr-block 10.0.$subnet.0/24 --compartment-id $compartment_id --display-name "gluster_vcn-$PRE" --wait-for-state AVAILABLE | jq -r '.data.id'`
   NG=`oci network internet-gateway create --region $region -c $compartment_id --vcn-id $V --is-enabled TRUE --display-name "gluster_ng-$PRE" --wait-for-state AVAILABLE | jq -r '.data.id'`
   RT=`oci network route-table create --region $region -c $compartment_id --vcn-id $V --display-name "gluster_rt-$PRE" --wait-for-state AVAILABLE --route-rules '[{"cidrBlock":"0.0.0.0/0","networkEntityId":"'$NG'"}]' | jq -r '.data.id'`
@@ -22,7 +24,7 @@ create_headnode()
 {
   #CREATE BLOCK AND HEADNODE
   BLKSIZE_GB=`expr $blksize_tb \* 1024`
-  for i in `seq 1 $server_nodes`; do
+  for i in `seq $server_nodes -1 1`; do
     echo CREATING glusterfs-server$i
     masterID=`oci compute instance launch $INFO --shape "$gluster_server_shape" --display-name "glusterfs-server-$PRE-$i" --image-id $OS --subnet-id $S --private-ip 10.0.$subnet.1$i --wait-for-state RUNNING --user-data-file scripts/gluster_configure.sh --ssh-authorized-keys-file $PRE.key.pub | jq -r '.data.id'`;
     for k in `seq 1 $blk_num`; do
@@ -38,7 +40,52 @@ create_headnode()
   masterPRVIP=$(oci compute instance list-vnics --region $region --instance-id $masterID | jq -r '.data[]."private-ip"')
 }
 
+create_remove()
+{
+cat << EOF >> removeCluster-$PRE.sh
+#!/bin/bash
+export masterIP=$masterIP
+export masterPRVIP=$masterPRVIP
+export USER=$USER
+export compartment_id=$C
+export PRE=$PRE
+export region=$region
+export AD=$AD
+export V=$V
+export NG=$NG
+export RT=$RT
+export SL=$SL
+export S=$S
+export BV=$BV
+export masterID=$masterID
+EOF
+
+cat << "EOF" >> removeCluster-$PRE.sh
+echo Removing: Compute Nodes
+for instanceid in $(oci compute instance list --region $region -c $C | jq -r '.data[] | select(."display-name" | contains ("'$PRE'")) | .id'); do oci compute instance terminate --region $region --instance-id $instanceid --force; done
+sleep 60
+for id in `oci bv volume list --compartment-id $compartment_id --region $region | jq -r '.data[] | select(."display-name" | contains ("'$PRE'")) | .id'`; do oci bv volume delete --region $region --volume-id $id --force; done
+echo Removing: Subnet, Route Table, Security List, Gateway, and VCN
+oci network subnet delete --region $region --subnet-id $S --force
+sleep 10
+oci network route-table delete --region $region --rt-id $RT --force
+sleep 10
+oci network security-list delete --region $region --security-list-id $SL --force
+sleep 10
+oci network internet-gateway delete --region $region --ig-id $NG --force
+sleep 10
+oci network vcn delete --region $region --vcn-id $V --force
+
+mv removeCluster-$PRE.sh .removeCluster-$PRE.sh
+mv $PRE.key .$PRE.key
+mv $PRE.key.pub .$PRE.key.pub
+echo Complete
+EOF
+  chmod +x removeCluster-$PRE*.sh
+
+}
+
 create_key
 create_network
 create_headnode
-
+create_remove

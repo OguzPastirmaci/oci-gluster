@@ -36,13 +36,13 @@ mkdir /bricks/mybrick/brick
 
 if ["$(hostname -s)" == "glusterfs-server1"]; then
     sleep 180
-    export server1=`hostname`
-    export server2=`host glusterfs-server1 |cut -c1-17`
-    export server3=`host glusterfs-server2 |cut -c1-17`
+    export host=`hostname`
+    export server1=`host glusterfs-server2 |cut -c1-17`
+    export server2=`host glusterfs-server3 |cut -c1-17`
     gluster peer probe ${server1}
     gluster peer probe ${server2}
     sleep 20
-    gluster volume create glustervol replica 3 transport tcp ${server1}:/bricks/mybrick/brick ${server2}:/bricks/mybrick/brick ${server3}:/bricks/mybrick/brick force
+    gluster volume create glustervol replica 3 transport tcp ${host}:/bricks/mybrick/brick ${server2}:/bricks/mybrick/brick ${server3}:/bricks/mybrick/brick force
     sleep 10
     gluster volume start glustervol
 fi
