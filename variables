@@ -4,7 +4,7 @@
 USER=opc
 server_nodes=2
 subnet=2
-image=OCentOS-7-2018.01.04-0
+image=CentOS-7-2018.10.12-0
 ad=1
 gluster_server_shape=VM.Standard2.1
 blksize_tb=2
