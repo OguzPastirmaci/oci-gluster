@@ -5,7 +5,7 @@ source variables
 create_key()
 {
   #CREATE KEY
-  echo CREATING key
+  echo -e "${GREEN} CREATING key${NC}"
   ssh-keygen -f $PRE.key -t rsa -N '' > /dev/null
 }
 
@@ -31,7 +31,6 @@ create_headnode()
       echo -e "${GREEN}CREATING glusterfs-block-$PRE-$i-$k ${NC}"
       BV=`oci bv volume create $INFO --display-name "gluster-block-$PRE-$i-$k" --size-in-gbs $BLKSIZE_GB --wait-for-state AVAILABLE | jq -r '.data.id'`;
       echo -e "${GREEN}ATTACHING glusterfs-block-$PRE-$i-$k ${NC}"
-      oci compute volume-attachment attach --region $region --instance-id $masterID --type iscsi --volume-id $BV --wait-for-state ATTACHED | jq -r '.data.id'
     done
   done
   masterIP=$(oci compute instance list-vnics --region $region --instance-id $masterID | jq -r '.data[]."public-ip"')
