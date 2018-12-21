@@ -19,3 +19,7 @@ region=uk-london-1
 AD=`oci iam availability-domain list -c $compartment_id --region $region --output table | grep 'AD-'$ad | awk '{ print $4 }'`
 OS=`oci compute image list -c $compartment_id --region $region --output table --query "data [*].{ImageName:\"display-name\", OCID:id}" | grep $image | awk '{ print $4 }'`
 INFO='--region '$region' --availability-domain '$AD' -c '$compartment_id
+
+GREEN='\033[0;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
