@@ -62,6 +62,7 @@ attach_blocks()
       ssh -o StrictHostKeyChecking=no -i $PRE.key $USER@$masterIP sudo sh /root/oci-hpc-ref-arch/scripts/mount_block_multi.sh $attachIQN $attachIPV4
     done
     echo
+  done
 }
 
 create_remove()
