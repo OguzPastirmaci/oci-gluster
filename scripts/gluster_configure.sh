@@ -11,8 +11,15 @@
 ######################################################################################################################################################
 exec 2>/dev/null
 
-yum install -y centos-release-gluster310.noarch
-yum install -y glusterfs-server samba
+systemctl stop firewalld
+systemctl disable firewalld
+yum-config-manager --add-repo http://yum.oracle.com/repo/OracleLinux/OL7/developer_gluster310/x86_64
+sleep 30
+yum install -y glusterfs-server samba git
+git clone https://github.com/oci-hpc/oci-hpc-ref-arch
+
+touch /var/log/CONFIG_COMPLETE
+
 pvcreate /dev/nvme0n1
 pvcreate /dev/nvme1n1
 pvcreate /dev/nvme2n1

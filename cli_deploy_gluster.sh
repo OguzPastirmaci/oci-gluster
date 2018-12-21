@@ -31,13 +31,37 @@ create_headnode()
       echo -e "${GREEN}CREATING glusterfs-block-$PRE-$i-$k ${NC}"
       BV=`oci bv volume create $INFO --display-name "gluster-block-$PRE-$i-$k" --size-in-gbs $BLKSIZE_GB --wait-for-state AVAILABLE | jq -r '.data.id'`;
       echo -e "${GREEN}ATTACHING glusterfs-block-$PRE-$i-$k ${NC}"
-      attachID=`oci compute volume-attachment attach --region $region --instance-id $masterID --type iscsi --volume-id $BV --wait-for-state ATTACHED | jq -r '.data.id'`;
-      attachIQN=`oci compute volume-attachment get --volume-attachment-id $attachID --region $region | jq -r .data.iqn`;
-      attachIPV4=`oci compute volume-attachment get --volume-attachment-id $attachID --region $region | jq -r .data.ipv4`;
+      oci compute volume-attachment attach --region $region --instance-id $masterID --type iscsi --volume-id $BV --wait-for-state ATTACHED | jq -r '.data.id'
     done
   done
   masterIP=$(oci compute instance list-vnics --region $region --instance-id $masterID | jq -r '.data[]."public-ip"')
   masterPRVIP=$(oci compute instance list-vnics --region $region --instance-id $masterID | jq -r '.data[]."private-ip"')
+}
+
+attach_blocks()
+{
+  echo
+  echo 'Adding key to head node'
+  n=0
+  until [ $n -ge 5 ]
+  do
+    scp -o StrictHostKeyChecking=no -i $PRE.key $PRE.key $USER@$masterIP:/home/$USER/.ssh/id_rsa && break
+    n=$[$n+1]
+    sleep 60
+  done
+
+  echo 'Waiting for node to complete configuration: 'date +%T
+  ssh -i $PRE.key $USER@$masterIP 'while [ ! -f /var/log/CONFIG_COMPLETE ]; do sleep 30; echo "Waiting for node to complete configuration: `date +%T`"; done'
+  for i in `seq $server_nodes -1 1`; do
+    echo 'Attaching block volume to head node: '`date +%T' '%D`
+    for k in `seq 1 $blk_num`; do
+      BVID=`oci bv volume list --compartment-id $compartment_id --region uk-london-1 | jq -r '.data[] | select(."display-name" | contains ("'gluster-block-$PRE-$i-$k'")) | .id'`
+      attachID=`oci compute volume-attachment list --compartment-id $compartment_id --region uk-london-1 | jq -r '.data[] | select(."volume-id" | contains ("'$BVID'")) | .id'`
+      attachIQN=`oci compute volume-attachment get --volume-attachment-id $attachID --region $region | jq -r .data.iqn`;
+      attachIPV4=`oci compute volume-attachment get --volume-attachment-id $attachID --region $region | jq -r .data.ipv4`;
+      ssh -o StrictHostKeyChecking=no -i $PRE.key $USER@$masterIP sudo sh /root/oci-hpc-ref-arch/scripts/mount_block_multi.sh $attachIQN $attachIPV4
+    done
+    echo
 }
 
 create_remove()
@@ -92,4 +116,7 @@ EOF
 create_key
 create_network
 create_headnode
+attach_blocks
 create_remove
+
+echo GlusterFS IP is: $masterIP
