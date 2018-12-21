@@ -26,7 +26,7 @@ create_headnode()
   BLKSIZE_GB=`expr $blksize_tb \* 1024`
   for i in `seq $server_nodes -1 1`; do
     echo -e "${GREEN}CREATING glusterfs-server$i ${NC}"
-    masterID=`oci compute instance launch $INFO --shape "$SIZE" --display-name "gluster-server-"$PRE"-"$i --image-id $OS --subnet-id $S --private-ip 10.0.$subnet.2 --wait-for-state RUNNING --user-data-file scripts/bm_configure.sh --ssh-authorized-keys-file $PRE.key.pub | jq -r '.data.id'`
+    masterID=`oci compute instance launch $INFO --shape "$SIZE" --display-name "gluster-server-$PRE-$i" --image-id $OS --subnet-id $S --private-ip 10.0.$subnet.2 --wait-for-state RUNNING --user-data-file scripts/bm_configure.sh --ssh-authorized-keys-file $PRE.key.pub | jq -r '.data.id'`
     for k in `seq 1 $blk_num`; do
       echo -e "${GREEN}CREATING glusterfs-block-$PRE-$i-$k ${NC}"
       BV=`oci bv volume create $INFO --display-name "gluster-block-$PRE-$i-$k" --size-in-gbs $BLKSIZE_GB --wait-for-state AVAILABLE | jq -r '.data.id'`;
