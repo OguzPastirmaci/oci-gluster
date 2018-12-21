@@ -8,6 +8,7 @@ image=Oracle-Linux-7.5-2018.10.16-0
 ad=2
 gluster_server_shape=VM.Standard2.1
 blksize_tb=2
+blk_num=2
 compartment_id=ocid1.compartment.oc1..aaaaaaaab65r3seb5h5f6r3q2e4gjr2do6f73y3rgmfvta3n6no6kkllovja
 PRE=`uuidgen | cut -c-5`
 #export region=us-ashburn-1
