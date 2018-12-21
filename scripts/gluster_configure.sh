@@ -16,6 +16,7 @@ systemctl disable firewalld
 yum-config-manager --add-repo http://yum.oracle.com/repo/OracleLinux/OL7/developer_gluster310/x86_64
 sleep 30
 yum install -y glusterfs-server samba git
+cd ~
 git clone https://github.com/oci-hpc/oci-hpc-ref-arch
 
 touch /var/log/CONFIG_COMPLETE

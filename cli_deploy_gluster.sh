@@ -5,7 +5,7 @@ source variables
 create_key()
 {
   #CREATE KEY
-  echo -e "${GREEN} CREATING key${NC}"
+  echo -e "${GREEN}CREATING key${NC}"
   ssh-keygen -f $PRE.key -t rsa -N '' > /dev/null
 }
 
@@ -87,13 +87,13 @@ export masterID=$masterID
 EOF
 
 cat << "EOF" >> removeCluster-$PRE.sh
-echo -e "${RED}Removing: Gluster Nodes ${NC}"
+echo -e "Removing: Gluster Nodes"
 for instanceid in $(oci compute instance list --region $region --compartment-id $compartment_id | jq -r '.data[] | select(."display-name" | contains ("'$PRE'")) | .id'); do oci compute instance terminate --region $region --instance-id $instanceid --force; done
 sleep 60
-echo -e "${RED}Removing: Blocks ${NC}"
+echo -e "Removing: Blocks"
 for id in `oci bv volume list --compartment-id $compartment_id --region $region | jq -r '.data[] | select(."display-name" | contains ("'$PRE'")) | .id'`; do oci bv volume delete --region $region --volume-id $id --force; done
 sleep 60
-echo -e "${RED}Removing: Subnet, Route Table, Security List, Gateway, and VCN ${NC}"
+echo -e "Removing: Subnet, Route Table, Security List, Gateway, and VCN"
 oci network subnet delete --region $region --subnet-id $S --force
 sleep 10
 oci network route-table delete --region $region --rt-id $RT --force
@@ -107,7 +107,7 @@ oci network vcn delete --region $region --vcn-id $V --force
 mv removeCluster-$PRE.sh .removeCluster-$PRE.sh
 mv $PRE.key .$PRE.key
 mv $PRE.key.pub .$PRE.key.pub
-echo -e "${RED} Complete ${NC}"
+echo -e "Complete"
 EOF
   chmod +x removeCluster-$PRE*.sh
 
