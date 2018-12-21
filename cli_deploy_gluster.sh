@@ -26,15 +26,12 @@ create_headnode()
   BLKSIZE_GB=`expr $blksize_tb \* 1024`
   for i in `seq $server_nodes -1 1`; do
     echo -e "${GREEN}CREATING glusterfs-server$i ${NC}"
-    masterID=`oci compute instance launch $INFO --shape "$gluster_server_shape" --display-name "glusterfs-server-$PRE-$i" --image-id $OS --subnet-id $S --private-ip 10.0.$subnet.1$i --wait-for-state RUNNING --user-data-file scripts/gluster_configure.sh --ssh-authorized-keys-file $PRE.key.pub | jq -r '.data.id'`;
     for k in `seq 1 $blk_num`; do
       echo -e "${GREEN}CREATING glusterfs-block-$PRE-$i-$k ${NC}"
       BV=`oci bv volume create $INFO --display-name "gluster-block-$PRE-$i-$k" --size-in-gbs $BLKSIZE_GB --wait-for-state AVAILABLE | jq -r '.data.id'`;
       echo -e "${GREEN}ATTACHING glusterfs-block-$PRE-$i-$k ${NC}"
     done
   done
-  masterIP=$(oci compute instance list-vnics --region $region --instance-id $masterID | jq -r '.data[]."public-ip"')
-  masterPRVIP=$(oci compute instance list-vnics --region $region --instance-id $masterID | jq -r '.data[]."private-ip"')
 }
 
 attach_blocks()
@@ -52,13 +49,15 @@ attach_blocks()
   echo 'Waiting for node to complete configuration: 'date +%T
   ssh -i $PRE.key $USER@$masterIP 'while [ ! -f /var/log/CONFIG_COMPLETE ]; do sleep 30; echo "Waiting for node to complete configuration: `date +%T`"; done'
   for i in `seq $server_nodes -1 1`; do
-    echo 'Attaching block volume to head node: '`date +%T' '%D`
+    echo 'Attaching block volume to head node: 'date +%T' '%D
+    IID=`oci compute instance list --compartment-id $compartment_id --region $region | jq -r '.data[] | select(."display-name" | contains ("'$PRE-$i'")) | .id'`
+    IP=`oci compute instance list-vnics --region $region --instance-id $IID | jq -r '.data[]."public-ip"'`
     for k in `seq 1 $blk_num`; do
-      BVID=`oci bv volume list --compartment-id $compartment_id --region uk-london-1 | jq -r '.data[] | select(."display-name" | contains ("'gluster-block-$PRE-$i-$k'")) | .id'`
-      attachID=`oci compute volume-attachment list --compartment-id $compartment_id --region uk-london-1 | jq -r '.data[] | select(."volume-id" | contains ("'$BVID'")) | .id'`
-      attachIQN=`oci compute volume-attachment get --volume-attachment-id $attachID --region $region | jq -r .data.iqn`;
-      attachIPV4=`oci compute volume-attachment get --volume-attachment-id $attachID --region $region | jq -r .data.ipv4`;
-      ssh -o StrictHostKeyChecking=no -i $PRE.key $USER@$masterIP sudo sh /root/oci-hpc-ref-arch/scripts/mount_block_multi.sh $attachIQN $attachIPV4
+      BVID=`oci bv volume list --compartment-id $compartment_id --region $region | jq -r '.data[] | select(."display-name" | contains ("'gluster-block-$PRE-$i-$k'")) | .id'`
+      attachID=`oci compute volume-attachment attach --region $region --instance-id $IID --type iscsi --volume-id $BVID --wait-for-state ATTACHED | jq -r '.data.id'`
+      attachIQN=`oci compute volume-attachment get --volume-attachment-id $attachID --region $region | jq -r .data.iqn`
+      attachIPV4=`oci compute volume-attachment get --volume-attachment-id $attachID --region $region | jq -r .data.ipv4`
+      ssh -o StrictHostKeyChecking=no -i $PRE.key $USER@$IP sudo sh /root/oci-hpc-ref-arch/scripts/mount_block.sh $attachIQN $attachIPV4
     done
     echo
   done
@@ -68,8 +67,6 @@ create_remove()
 {
 cat << EOF >> removeCluster-$PRE.sh
 #!/bin/bash
-RED=$RED
-NC=$NC
 export masterIP=$masterIP
 export masterPRVIP=$masterPRVIP
 export USER=$USER
@@ -119,4 +116,4 @@ create_headnode
 attach_blocks
 create_remove
 
-echo GlusterFS IP is: $masterIP
+echo GlusterFS IP is: $IP
