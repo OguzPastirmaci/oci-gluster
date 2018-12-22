@@ -39,16 +39,11 @@ attach_blocks()
   IID=`oci compute instance list --compartment-id $compartment_id --region $region | jq -r '.data[] | select(."display-name" | contains ("'$PRE-$i'")) | .id'`
   IP=`oci compute instance list-vnics --region $region --instance-id $IID | jq -r '.data[]."public-ip"'`
   echo -e "${GREEN}Adding key to head node${NC}"
-  n=0
-  until [ $n -ge 5 ]
-  do
-    scp -o StrictHostKeyChecking=no -i $PRE.key $PRE.key $USER@$IP:/home/$USER/.ssh/id_rsa && break
-    n=$[$n+1]
-    sleep 60
-  done 
 
-  ssh -i $PRE.key $USER@$IP 'while [ ! -f /var/log/CONFIG_COMPLETE ]; do sleep 30; echo "Waiting for node to complete configuration: `date +%T`"; done'
   for i in `seq $server_nodes -1 1`; do
+    n=0
+    until [ $n -ge 5 ]; do scp -o StrictHostKeyChecking=no -i $PRE.key $PRE.key $USER@$IP:/home/$USER/.ssh/id_rsa && break; n=$[$n+1]; sleep 60; done
+    ssh -i $PRE.key $USER@$IP 'while [ ! -f /var/log/CONFIG_COMPLETE ]; do sleep 30; echo "Waiting for node to complete configuration: `date +%T`"; done'
     IID=`oci compute instance list --compartment-id $compartment_id --region $region | jq -r '.data[] | select(."display-name" | contains ("'$PRE-$i'")) | .id'`
     IP=`oci compute instance list-vnics --region $region --instance-id $IID | jq -r '.data[]."public-ip"'`
 
@@ -60,6 +55,7 @@ attach_blocks()
       attachIPV4=`oci compute volume-attachment get --volume-attachment-id $attachID --region $region | jq -r .data.ipv4`
       ssh -o StrictHostKeyChecking=no -i $PRE.key $USER@$IP sudo sh /root/oci-hpc-ref-arch/scripts/mount_block.sh attach $attachIQN $attachIPV4
     done
+    echo -e "${GREEN}CONFIGURING gluster-server-$PRE-$i ${NC}"
     ssh -o StrictHostKeyChecking=no -i $PRE.key $USER@$IP sudo sh /var/lib/cloud/instance/user-data.txt create_volume $total_size $server_nodes
   done
 }
@@ -118,4 +114,4 @@ create_headnode
 attach_blocks
 create_remove
 
-echo GlusterFS IP is: $IP
+echo GlusterFS $PRE IP is: $IP

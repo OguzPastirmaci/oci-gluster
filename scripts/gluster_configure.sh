@@ -11,6 +11,11 @@
 ######################################################################################################################################################
 exec 2>/dev/null
 
+action=$1
+vol_size=$2
+server_nodes=$3
+
+
 config_node()
 {
     systemctl stop firewalld
@@ -27,7 +32,7 @@ create_pvolume()
 {
     for i in `lsblk -d --noheadings | awk '{print $1}'`
     do 
-        if [ $i = "sda" ]; then  break
+        if [ $i = "sda" ]; then  next
         else
             lsblk
             parted /dev/$i mklabel gpt
@@ -43,8 +48,11 @@ create_pvolume()
 
 config_gluster()
 {
-    lvcreate -L $1T -n brick1 vg_gluster
+    echo CONFIG GLUSTER
+    lvcreate -L $vol_size\T -n brick1 vg_gluster
+    lvdisplay
     mkfs.xfs /dev/vg_gluster/brick1
+    df -h
     mkdir -p /bricks/brick1
     mount /dev/vg_gluster/brick1 /bricks/brick1
     echo "/dev/vg_gluster/brick1  /bricks/brick1    xfs     defaults,_netdev  0 0" >> /etc/fstab
@@ -60,24 +68,28 @@ config_gluster()
     mkdir /bricks/brick1/brick
 
     if [ "$(hostname -s | tail -c 3)" = "-1" ]; then
+        echo CONFIGURING GLUSTER SERVER
         sleep 180
-        export host=`hostname -i`
-        for i in `seq 2 $2`;
+        host=`hostname -i`
+        for i in `seq 2 $server_nodes`;
         do
             gluster peer probe 10.0.2.1$i
         done
         sleep 20
-        sudo gluster volume create glustervol transport tcp ${host}:/bricks/brick1/brick
+        gluster volume create glustervol transport tcp ${host}:/bricks/brick1/brick force
         sleep 10
-        for i in `seq 2 $2`;
+        for i in `seq 2 $server_nodes`;
         do
-            sudo gluster volume add-brick glustervol 10.0.2.1$i:/bricks/mybrick/brick force
+            gluster volume add-brick glustervol 10.0.2.1$i:/bricks/brick1/brick force
             sleep 10
         done
         #gluster volume create glustervol replica 3 transport tcp ${host}:/bricks/brick1/brick ${server2}:/bricks/brick1/brick ${server3}:/bricks/brick1/brick force
-        gluster volume start glustervol
+        gluster vol info
+        gluster volume start glustervol force
+        sleep 20
+        gluster volume status
     fi
 }
 
-if [ $1 = "create_volume" ]; then create_pvolume
+if [ $action = "create_volume" ]; then create_pvolume
 else config_node; fi
