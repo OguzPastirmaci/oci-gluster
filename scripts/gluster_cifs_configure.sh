@@ -14,7 +14,7 @@ source functions
 # print_usage(): Function to print script usage
 function print_usage() {
   echo "$0 -v volume -m \"masternode ip address\" -n \"list of workernode addresses\" -b \"brick path\" -u \"SMB Username\" -p \"SMB Password\""
-  echo "Example: $0 -v examplevolume -m 1.1.1.1 -n \"1.1.1.2 1.1.1.3 1.1.1.4\" -b \"/brick/mybrick\""
+  echo "Example: $0 -v examplevolume -m 1.1.1.1 -n \"1.1.1.2 1.1.1.3 1.1.1.4\" -b \"/brick/mybrick\" -u \"opc\" -p \"password123\""
   exit 1
 }
 
