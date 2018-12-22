@@ -89,12 +89,12 @@ enable_smb
 start_smb
 
 # Set Username/Password for accessing share
-set_smbpasswd -U $SMBUSER $SMBPASSWORD
+set_smbpasswd -U $SMBUSERNAME $SMBPASSWORD
 
 # Restart Gluster Volume
 restart_volume $VOLNAME
 
 # Setup ACL perms
-set_perms $VOLNAME $SMBUSER
+set_perms $VOLNAME $SMBUSERNAME
 
 # end of script
