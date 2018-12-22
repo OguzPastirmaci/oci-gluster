@@ -14,6 +14,7 @@ exec 2>/dev/null
 action=$1
 vol_size=$2
 server_nodes=$3
+subnet=$4
 
 
 config_node()
@@ -34,7 +35,7 @@ create_pvolume()
     do 
         if [ $i = "sda" ]; then  next
         else
-            lsblk
+            #lsblk
             parted /dev/$i mklabel gpt
             parted -a opt /dev/$i mkpart primary ext4 0% 100%
             pvcreate /dev/$i\1
@@ -42,6 +43,7 @@ create_pvolume()
             vgextend vg_gluster /dev/$i\1
         fi
     done
+
     vgdisplay
     config_gluster
 }
@@ -80,11 +82,10 @@ config_gluster()
         sleep 10
         for i in `seq 2 $server_nodes`;
         do
-            gluster volume add-brick glustervol 10.0.2.1$i:/bricks/brick1/brick force
+            gluster volume add-brick glustervol 10.0.$subnet.1$i:/bricks/brick1/brick force
             sleep 10
         done
         #gluster volume create glustervol replica 3 transport tcp ${host}:/bricks/brick1/brick ${server2}:/bricks/brick1/brick ${server3}:/bricks/brick1/brick force
-        gluster vol info
         gluster volume start glustervol force
         sleep 20
         gluster volume start glustervol force

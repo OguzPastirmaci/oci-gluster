@@ -2,13 +2,13 @@
 
 #SET TENANCY
 USER=opc
-server_nodes=2
+server_nodes=3
 subnet=2
 image=Oracle-Linux-7.5-2018.10.16-0
 ad=1
-gluster_server_shape=VM.Standard2.1
+gluster_server_shape=VM.Standard2.4
 blksize_tb=2
-blk_num=4
+blk_num=3
 total_size=`echo "$blksize_tb*$blk_num - 0.5" | bc`
 compartment_id=ocid1.compartment.oc1..aaaaaaaab65r3seb5h5f6r3q2e4gjr2do6f73y3rgmfvta3n6no6kkllovja
 PRE=`uuidgen | cut -c-5`
