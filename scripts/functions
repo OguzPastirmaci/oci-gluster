@@ -44,6 +44,12 @@ function start_smb() {
   check_status $? "start_smb" 
 }
 
+# start_ctdb: Start CTDB
+function start_ctdb() {
+  /sbin/service ctdb start
+  check_status $? "start_ctdb"
+}
+
 # create_ctdb_volume(): Creates gluster volume used by the CTDB
 #  processes.
 function create_ctdb_volume() {  
@@ -51,12 +57,27 @@ function create_ctdb_volume() {
   serverlist="$2"
   cluster=""
   replica_size=$(list_length "${serverlist}")
+  
   for f in $serverlist
   do
     cluster="$cluster $f:${brick}"
   done
 
+  mkdir -p ${brick}
   gluster volume create ctdb replica $replica_size transport tcp $cluster
+  check_status $? "create_ctdb_volume:create ctdb volume"
+
+  gluster volume start ctdb
+  check_status $? "create_ctdb_volume:start ctdb volume"
+}
+
+# create_ctdb_cluster_list: Create list of servers in the CTDB cluster
+function create_ctdb_cluster_list {
+  cluster_list="/etc/ctdb/nodes"
+  for f in $serverlist
+  do
+    echo "$f" >> $cluster_list
+  done
 }
 
 # tune_gluster_for_smb(): Set recommended tuning params
@@ -94,15 +115,21 @@ function update_ctdb_auto_scripts() {
   check_status $? "update_smb_auto_start:ctdb teardown"
 }
 
+# enable_smb_clustering(): Copy the base samba clustering config into place.
+function enable_smb_clustering() {
+  /bin/cp files/smb.conf.clustering /etc/samba/smb.conf
+  check_status $? "enable_smb_clustering:smb.conf"
+}
+
 # check_master_node(): Checks if the commands are being run on the master
 #   glusterfs server.
 function check_master_node() {
   ret=$(ifconfig | grep $1)
+  
   if [ ! "$?" = "0" ]
   then
     return 1
   fi
-
+  
   return 0
-
 }

@@ -49,6 +49,37 @@ done
 echo $VOLNAME
 echo $NODE_LIST
 
-create_ctdb_volume "$VOLNAME" "$NODE_LIST"
+# Create the volume needed for CTDB if on the master
+# glusterfs server only.
+ret=$(check_master_node $MASTER_NODE)
+
+if [ "$ret" = "0" ]
+then
+  create_ctdb_volume "$BRICK/ctdb" "$NODE_LIST"
+fi
+
+# Update the SMB Auto Start(Only) Scripts
+# and enable SMB for clustering
+update_smb_auto_start
+enable_smb_clustering
+
+# Update the CTDB Auto Start/Stop Scripts
+update_ctdb_auto_scripts
+
+# Create the list of nodes in the CTDB cluster
+create_ctdb_cluster_list
+
+# Start CTDB Volume
+start_ctdb
+
+# Tune desired volume for Samba Metadata Performance
+tune_gluster_for_smb $VOLNAME
+
+# Restart GlusterFS Daemon
+restart_glusterd
+
+# Enable and Start Samba
+enable_smb
+start_smb
 
 # end of script
