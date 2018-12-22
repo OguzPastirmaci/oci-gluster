@@ -24,6 +24,8 @@ function list_length() {
 #   are available.
 function install_gluster_smb_reqs() {
   yum -y install ctdb samba-vfs-glusterfs
+  setenforce 0
+  /bin/cp files/selinux_config /etc/selinux/config
 }
 
 # restart_glusterd(): Function to restart Glusterd

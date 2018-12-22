@@ -55,6 +55,14 @@ done
 # Install CTDB and SMB Prereqs
 install_gluster_smb_reqs
 
+# Update the SMB Auto Start(Only) Scripts
+# and enable SMB for clustering
+update_smb_auto_start
+enable_smb_clustering
+
+# Update the CTDB Auto Start/Stop Scripts
+update_ctdb_auto_scripts
+
 # Create the volume needed for CTDB if on the master
 # glusterfs server only.
 ret=$(check_master_node $MASTER_NODE)
@@ -63,14 +71,6 @@ if [ "$?" = "0" ]
 then
   create_ctdb_volume "$BRICK/ctdb" "$MASTER_NODE $NODE_LIST"
 fi
-
-# Update the SMB Auto Start(Only) Scripts
-# and enable SMB for clustering
-update_smb_auto_start
-enable_smb_clustering
-
-# Update the CTDB Auto Start/Stop Scripts
-update_ctdb_auto_scripts
 
 # Create the list of nodes in the CTDB cluster
 create_ctdb_cluster_list "$MASTER_NODE $NODE_LIST"
@@ -91,8 +91,7 @@ start_smb
 # Set Username/Password for accessing share
 set_smbpasswd -U $SMBUSER $SMBPASSWORD
 
-# Restart Glsuter Volumes CTDB and Target Volume
-restart_volume ctdb
+# Restart Gluster Volume
 restart_volume $VOLNAME
 
 # end of script
