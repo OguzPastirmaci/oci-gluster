@@ -15,14 +15,15 @@ function check_status {
   fi
 }
 
+# list_length(): Return the length of the list
 function list_length() {
   echo $(wc -w <<< "$@")
 }
 
 # install_gluster_smb_reqs(): Ensure all required Gluster and Samba Pkgs
 #   are available.
-function install_gluster_smb_reqs(){
-  yum -y install glusterfs-server samba ctdb samba-vfs-glusterfs
+function install_gluster_smb_reqs() {
+  yum -y install ctdb samba-vfs-glusterfs
 }
 
 # restart_glusterd(): Function to restart Glusterd
@@ -54,7 +55,7 @@ function create_ctdb_volume() {
   do
     cluster="$cluster $f:${brick}"
   done
-  
+
   gluster volume create ctdb replica $replica_size transport tcp $cluster
 }
 
@@ -73,7 +74,7 @@ function tune_gluster_for_smb () {
 
 # update_smb_auto_start(): Override the default SMB autostart
 #  script to enable tuning for windows only shares.
-function update_smb_auto_start(){
+function update_smb_auto_start() {
   autostart_scripts="/var/lib/glusterd/hooks/1/start/post"
 
   /bin/cp files/S30samba-start.sh $autostart_scripts/S30samba-start.sh
@@ -82,7 +83,7 @@ function update_smb_auto_start(){
 
 # update_ctdb_auto_scripts(): Updates the autostart scripts
 #  for CTDB.
-function update_ctdb_auto_scripts(){
+function update_ctdb_auto_scripts() {
   autostart_scripts="/var/lib/glusterd/hooks/1/start/post"
   autostop_scripts="/var/lib/glusterd/hooks/1/stop/pre"
   
@@ -91,4 +92,17 @@ function update_ctdb_auto_scripts(){
   
   /bin/cp files/S29CTDB-teardown.sh $autostop_scripts/S29CTDB-teardown.sh
   check_status $? "update_smb_auto_start:ctdb teardown"
+}
+
+# check_master_node(): Checks if the commands are being run on the master
+#   glusterfs server.
+function check_master_node() {
+  ret=$(ifconfig | grep $1)
+  if [ ! "$?" = "0" ]
+  then
+    return 1
+  fi
+
+  return 0
+
 }
