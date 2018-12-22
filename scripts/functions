@@ -1,0 +1,94 @@
+#!/bin/bash
+# Name: functions
+# Author: Chuck Gilbert <chuck.gilbert@oracle.com
+# Description: This file serves as a library of functions used
+#   to configure GlusterFS with Samba.
+#
+
+# check_status(<return code> <identifier>): Check the return code of
+#   of action.
+function check_status {
+  if [ ! "$1" = "0" ]
+  then
+    echo "** Failed Action: $2 **"
+    exit 1
+  fi
+}
+
+function list_length() {
+  echo $(wc -w <<< "$@")
+}
+
+# install_gluster_smb_reqs(): Ensure all required Gluster and Samba Pkgs
+#   are available.
+function install_gluster_smb_reqs(){
+  yum -y install glusterfs-server samba ctdb samba-vfs-glusterfs
+}
+
+# restart_glusterd(): Function to restart Glusterd
+function restart_glusterd() {
+  systemctl glusterd restart  
+  check_status $? "restart_glusterd"
+}
+
+# enable_smb(): Enable SMB on startup
+function enable_smb() { 
+  /sbin/chkconfig smb on
+  check_status $? "enable_smb"
+}
+
+# start_smb(): Start Samba Server
+function start_smb() { 
+  /sbin/service smb start
+  check_status $? "start_smb" 
+}
+
+# create_ctdb_volume(): Creates gluster volume used by the CTDB
+#  processes.
+function create_ctdb_volume() {  
+  brick="$1"
+  serverlist="$2"
+  cluster=""
+  replica_size=$(list_length "${serverlist}")
+  for f in $serverlist
+  do
+    cluster="$cluster $f:${brick}"
+  done
+  
+  gluster volume create ctdb replica $replica_size transport tcp $cluster
+}
+
+# tune_gluster_for_smb(): Set recommended tuning params
+#   for new gluster volume for samba share.
+function tune_gluster_for_smb () { 
+  gluster volume set $1 performance.cache-samba-metadata on
+  check_status $? "tune_gluster_for_smb:performance.cache-samba-metadata"
+  
+  gluster volume set $1 storage.batch-fsync-delay-usec 0
+  check_status $? "tune_gluster_for_smb:storage.batch-fsync-delay-usec"
+  
+  gluster volume set $1 group metadata-cache
+  check_status $? "tune_gluster_for_smb:group metadata-cache"
+}
+
+# update_smb_auto_start(): Override the default SMB autostart
+#  script to enable tuning for windows only shares.
+function update_smb_auto_start(){
+  autostart_scripts="/var/lib/glusterd/hooks/1/start/post"
+
+  /bin/cp files/S30samba-start.sh $autostart_scripts/S30samba-start.sh
+  check_status $? "update_smb_auto_start"
+}
+
+# update_ctdb_auto_scripts(): Updates the autostart scripts
+#  for CTDB.
+function update_ctdb_auto_scripts(){
+  autostart_scripts="/var/lib/glusterd/hooks/1/start/post"
+  autostop_scripts="/var/lib/glusterd/hooks/1/stop/pre"
+  
+  /bin/cp files/S29CTDBsetup.sh $autostart_scripts/S29CTDBsetup.sh
+  check_status $? "update_smb_auto_start:ctdb setup"
+  
+  /bin/cp files/S29CTDB-teardown.sh $autostop_scripts/S29CTDB-teardown.sh
+  check_status $? "update_smb_auto_start:ctdb teardown"
+}

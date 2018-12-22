@@ -1,33 +1,47 @@
 #!/bin/bash
+# Name: gluster_cifs_configure.sh
+# Author: Chuck Gilbert <chuck.gilbert@oracle.com>
+# Description: This script takes an existing GlusterFS Volume,
+#   and enables CIFS export of the volume for access of windows clients.
+#
 
-# gluster volume set VOLNAME stat-prefetch off
+# Exit on any errors
+set -e
 
-# gluster volume set VOLNAME server.allow-insecure on
+# Source Functions
+source functions
 
-# Need to update /etc/glusterf/glusterd.vol on all gluster servers
-# option rpc-auth-allow-insecure on
+# print_usage(): Function to print script usage
+function print_usage() {
+  echo "$0 -v volume -m \"x.x.x.x y.y.y.y\""
+  exit 1
+}
 
-# Restart Glusterd on wach node
+# Check Arg Length
+if [ "$#" = 0 ]
+then
+  print_usage
+fi
 
-# gluster volume set VOLNAME storage.batch-fsync-delay-usec 0
+# Get Commandline Options
+while getopts ":v:m:" opt; do
+   case $opt in
+     v)
+       VOLNAME=$OPTARG
+       ;;
+     m)
+       NODE_LIST=$OPTARG
+       ;;
+     \?)
+       echo "Invalid option: -$OPTARG" >&2
+       print_usage
+       ;;
+   esac
+ done
 
-# chkconfig smb on
+echo $VOLNAME
+echo $NODE_LIST
 
-#/var/lib/glusterd/hooks/1/start/post
-#Rename the S30samba-start.sh to K30samba-start.sh
-# smbstatus -S
+create_ctdb_volume "/brick/bricks/mybrick/ctdb" "$NODE_LIST"
 
-# gluster volume set user.smb disable
-
-# /etc/samba/smb.conf
-# [gluster-VOLNAME]
-# comment = For samba share of volume VOLNAME
-# vfs objects = glusterfs
-# glusterfs:volume = VOLNAME
-# glusterfs:logfile = /var/log/samba/VOLNAME.log
-# glusterfs:loglevel = 7
-# path = /
-# read only = no
-# guest ok = yes
-
-
+# end of script
