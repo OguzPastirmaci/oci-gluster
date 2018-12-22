@@ -52,7 +52,7 @@ create_pvolume()
 config_gluster()
 {
     echo CONFIG GLUSTER
-    lvcreate -l 100% VG -n brick1 vg_gluster
+    lvcreate -l 100%VG -n brick1 vg_gluster
     lvdisplay
     mkfs.xfs /dev/vg_gluster/brick1
     mkdir -p /bricks/brick1
