@@ -51,19 +51,18 @@ attach_blocks()
 
   ssh -i $PRE.key $USER@$IP 'while [ ! -f /var/log/CONFIG_COMPLETE ]; do sleep 30; echo "Waiting for node to complete configuration: `date +%T`"; done'
   for i in `seq $server_nodes -1 1`; do
-    echo -e "${GREEN}ATTACHING glusterfs-block-$PRE-$i-$k ${NC}"
     IID=`oci compute instance list --compartment-id $compartment_id --region $region | jq -r '.data[] | select(."display-name" | contains ("'$PRE-$i'")) | .id'`
     IP=`oci compute instance list-vnics --region $region --instance-id $IID | jq -r '.data[]."public-ip"'`
-    echo
- 
+
     for k in `seq 1 $blk_num`; do
+      echo -e "${GREEN}ATTACHING glusterfs-block-$PRE-$i-$k ${NC}"
       BVID=`oci bv volume list --compartment-id $compartment_id --region $region | jq -r '.data[] | select(."display-name" | contains ("'gluster-block-$PRE-$i-$k'")) | .id'`
       attachID=`oci compute volume-attachment attach --region $region --instance-id $IID --type iscsi --volume-id $BVID --wait-for-state ATTACHED | jq -r '.data.id'`
       attachIQN=`oci compute volume-attachment get --volume-attachment-id $attachID --region $region | jq -r .data.iqn`
       attachIPV4=`oci compute volume-attachment get --volume-attachment-id $attachID --region $region | jq -r .data.ipv4`
-      ssh -o StrictHostKeyChecking=no -i $PRE.key $USER@$IP sudo sh /root/oci-hpc-ref-arch/scripts/mount_block.sh $attachIQN $attachIPV4
+      ssh -o StrictHostKeyChecking=no -i $PRE.key $USER@$IP sudo sh /root/oci-hpc-ref-arch/scripts/mount_block.sh attach $attachIQN $attachIPV4
     done
-    echo
+    ssh -o StrictHostKeyChecking=no -i $PRE.key $USER@$IP sudo sh /root/oci-hpc-ref-arch/scripts/mount_block.sh mount
   done
 }
 
