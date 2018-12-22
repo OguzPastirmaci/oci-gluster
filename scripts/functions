@@ -74,7 +74,7 @@ function create_ctdb_volume() {
 # create_ctdb_cluster_list: Create list of servers in the CTDB cluster
 function create_ctdb_cluster_list {
   cluster_list="/etc/ctdb/nodes"
-  for f in $serverlist
+  for f in $1
   do
     echo "$f" >> $cluster_list
   done
@@ -135,6 +135,13 @@ function check_master_node() {
 
 # set_smbpasswd(): Sets the specified users smbpasswd for mounting
 #  the cifs share.
-function set_smbpasswd {
-  printf "$2\n$2\n" | smbpasswd -a -s $1
-}  
+function set_smbpasswd() {
+  printf "$2\n$2\n" | smbpasswd -a -U $1 -s
+}
+
+# restart_volume(): Restarts a given glustervolume
+function restart_volume() {
+  gluster volume stop $1 force
+  sleep 5
+  gluster volume start $1 force
+}

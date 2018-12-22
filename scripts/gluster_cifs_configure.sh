@@ -73,7 +73,7 @@ enable_smb_clustering
 update_ctdb_auto_scripts
 
 # Create the list of nodes in the CTDB cluster
-create_ctdb_cluster_list
+create_ctdb_cluster_list "$MASTER_NODE $NODE_LIST"
 
 # Start CTDB Volume
 start_ctdb
@@ -89,6 +89,10 @@ enable_smb
 start_smb
 
 # Set Username/Password for accessing share
-set_smbpasswd $SMBUSER $SMBPASSWORD
+set_smbpasswd -U $SMBUSER $SMBPASSWORD
+
+# Restart Glsuter Volumes CTDB and Target Volume
+restart_volume ctdb
+restart_volume $VOLNAME
 
 # end of script
