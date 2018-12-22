@@ -46,16 +46,13 @@ while getopts ":v:m:n:b" opt; do
   esac
 done
 
-echo $VOLNAME
-echo $NODE_LIST
-
 # Create the volume needed for CTDB if on the master
 # glusterfs server only.
 ret=$(check_master_node $MASTER_NODE)
 
-if [ "$ret" = "0" ]
+if [ "$?" = "0" ]
 then
-  create_ctdb_volume "$BRICK/ctdb" "$NODE_LIST"
+  create_ctdb_volume "$BRICK/ctdb" "$MASTER_NODE $NODE_LIST"
 fi
 
 # Update the SMB Auto Start(Only) Scripts
