@@ -95,6 +95,12 @@ set_smbpasswd -U $SMBUSERNAME $SMBPASSWORD
 restart_volume $VOLNAME
 
 # Setup ACL perms
-set_perms $VOLNAME $SMBUSERNAME
+ret=$(check_master_node $MASTER_NODE)
+
+if [ "$?" = "0" ]
+then
+  set_perms $VOLNAME $SMBUSERNAME
+fi
+
 
 # end of script
