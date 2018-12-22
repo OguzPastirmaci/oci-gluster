@@ -12,9 +12,8 @@
 exec 2>/dev/null
 
 action=$1
-vol_size=$2
-server_nodes=$3
-subnet=$4
+server_nodes=$2
+subnet=$3
 
 
 config_node()

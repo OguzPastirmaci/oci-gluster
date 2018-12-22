@@ -56,7 +56,7 @@ attach_blocks()
       ssh -o StrictHostKeyChecking=no -i $PRE.key $USER@$IP sudo sh /root/oci-hpc-ref-arch/scripts/mount_block.sh attach $attachIQN $attachIPV4
     done
     echo -e "${GREEN}CONFIGURING gluster-server-$PRE-$i ${NC}"
-    ssh -o StrictHostKeyChecking=no -i $PRE.key $USER@$IP sudo sh /var/lib/cloud/instance/user-data.txt create_volume $total_size $server_nodes $subnet
+    ssh -o StrictHostKeyChecking=no -i $PRE.key $USER@$IP sudo sh /var/lib/cloud/instance/user-data.txt create_volume $server_nodes $subnet
   done
 }
 
