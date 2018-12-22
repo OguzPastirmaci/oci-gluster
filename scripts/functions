@@ -154,5 +154,5 @@ function set_perms() {
 function restart_volume() {
   echo "y" | gluster volume stop $1 force
   sleep 5
-  echo "y" | gluster volume start $1 force
+  gluster volume start $1 force
 }
