@@ -39,6 +39,7 @@ attach_blocks()
 {
   IID=`oci compute instance list --compartment-id $compartment_id --region $region | jq -r '.data[] | select(."display-name" | contains ("'$PRE-$i'")) | .id'`
   IP=`oci compute instance list-vnics --region $region --instance-id $IID | jq -r '.data[]."public-ip"'`
+  echo $IP
   echo -e "${GREEN}Adding key to head node${NC}"
   n=0
   until [ $n -ge 5 ]
