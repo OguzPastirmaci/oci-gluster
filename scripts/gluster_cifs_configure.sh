@@ -13,7 +13,7 @@ source functions
 
 # print_usage(): Function to print script usage
 function print_usage() {
-  echo "$0 -v volume -m \"masternode ip address\" -n \"list of workernode addresses\" -b \"brick path\""
+  echo "$0 -v volume -m \"masternode ip address\" -n \"list of workernode addresses\" -b \"brick path\" -u \"SMB Username\" -p \"SMB Password\""
   echo "Example: $0 -v examplevolume -m 1.1.1.1 -n \"1.1.1.2 1.1.1.3 1.1.1.4\" -b \"/brick/mybrick\""
   exit 1
 }
@@ -25,7 +25,7 @@ then
 fi
 
 # Get Commandline Options
-while getopts ":v:m:n:b" opt; do
+while getopts ":v:m:n:b:u:p" opt; do
   case $opt in
   v)
     VOLNAME=$OPTARG
@@ -39,12 +39,21 @@ while getopts ":v:m:n:b" opt; do
   b)
     BRICK=$OPTARG
     ;;
+  u)
+    SMBUSERNAME=$OPTARG
+    ;;
+  p)
+    SMBPASSWORD=$OPTARG
+    ;;
   \?)
     echo "Invalid option: -$OPTARG" >&2
     print_usage
     ;;
   esac
 done
+
+# Install CTDB and SMB Prereqs
+install_gluster_smb_reqs
 
 # Create the volume needed for CTDB if on the master
 # glusterfs server only.
@@ -78,5 +87,8 @@ restart_glusterd
 # Enable and Start Samba
 enable_smb
 start_smb
+
+# Set Username/Password for accessing share
+set_smbpasswd $SMBUSER $SMBPASSWORD
 
 # end of script

@@ -28,7 +28,7 @@ function install_gluster_smb_reqs() {
 
 # restart_glusterd(): Function to restart Glusterd
 function restart_glusterd() {
-  systemctl glusterd restart  
+  service glusterfsd restart  
   check_status $? "restart_glusterd"
 }
 
@@ -132,3 +132,9 @@ function check_master_node() {
   fi
   echo 0
 }
+
+# set_smbpasswd(): Sets the specified users smbpasswd for mounting
+#  the cifs share.
+function set_smbpasswd {
+  printf "$2\n$2\n" | smbpasswd -a -s $1
+}  
