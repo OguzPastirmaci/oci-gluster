@@ -38,12 +38,12 @@ attach_blocks()
 {
   IID=`oci compute instance list --compartment-id $compartment_id --region $region | jq -r '.data[] | select(."display-name" | contains ("'$PRE-$i'")) | .id'`
   IP=`oci compute instance list-vnics --region $region --instance-id $IID | jq -r '.data[]."public-ip"'`
-  echo -e "${GREEN}Adding key to head node${NC}"
+  echo -e "${GREEN}ADDING key to head node${NC}"
 
   for i in `seq $server_nodes -1 1`; do
     n=0
-    until [ $n -ge 5 ]; do scp -o StrictHostKeyChecking=no -i $PRE.key $PRE.key $USER@$IP:/home/$USER/.ssh/id_rsa && break; n=$[$n+1]; sleep 60; done
-    ssh -i $PRE.key $USER@$IP 'while [ ! -f /var/log/CONFIG_COMPLETE ]; do sleep 30; echo "Waiting for node to complete configuration: `date +%T`"; done'
+    until [ $n -ge 5 ]; do scp -o StrictHostKeyChecking=no -i $PRE.key $PRE.key $USER@$IP:/home/$USER/.ssh/id_rsa && break; n=$[$n+1]; sleep 30; done
+    ssh -i $PRE.key $USER@$IP 'while [ ! -f /var/log/CONFIG_COMPLETE ]; do sleep 30; echo "WAITING for node to complete configuration: `date +%T`"; done'
     IID=`oci compute instance list --compartment-id $compartment_id --region $region | jq -r '.data[] | select(."display-name" | contains ("'$PRE-$i'")) | .id'`
     IP=`oci compute instance list-vnics --region $region --instance-id $IID | jq -r '.data[]."public-ip"'`
 
@@ -107,6 +107,7 @@ EOF
   chmod +x removeCluster-$PRE*.sh
 
 }
+echo Creating GlusterFS $PRE
 
 create_key
 create_network

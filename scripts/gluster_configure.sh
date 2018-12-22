@@ -52,10 +52,10 @@ config_gluster()
     lvcreate -L $vol_size\T -n brick1 vg_gluster
     lvdisplay
     mkfs.xfs /dev/vg_gluster/brick1
-    df -h
     mkdir -p /bricks/brick1
     mount /dev/vg_gluster/brick1 /bricks/brick1
     echo "/dev/vg_gluster/brick1  /bricks/brick1    xfs     defaults,_netdev  0 0" >> /etc/fstab
+    df -h
     sed -i '/search/d' /etc/resolv.conf 
     echo "search baremetal.oraclevcn.com gluster_subnet-d6700.baremetal.oraclevcn.com publicsubnetad1.baremetal.oraclevcn.com publicsubnetad3.baremetal.oraclevcn.com localdomain" >> /etc/resolv.conf
     chattr -R +i /etc/resolv.conf
@@ -87,7 +87,9 @@ config_gluster()
         gluster vol info
         gluster volume start glustervol force
         sleep 20
+        gluster volume start glustervol force
         gluster volume status
+        gluster volume info
     fi
 }
 
