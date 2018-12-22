@@ -152,7 +152,7 @@ function set_perms() {
 
 # restart_volume(): Restarts a given glustervolume
 function restart_volume() {
-  gluster volume stop $1 force
+  echo "y" | gluster volume stop $1 force
   sleep 5
-  gluster volume start $1 force
+  echo "y" | gluster volume start $1 force
 }

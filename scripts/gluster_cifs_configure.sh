@@ -67,7 +67,7 @@ update_ctdb_auto_scripts
 # glusterfs server only.
 ret=$(check_master_node $MASTER_NODE)
 
-if [ "$?" = "0" ]
+if [ "$ret" = "0" ]
 then
   create_ctdb_volume "$BRICK/ctdb" "$MASTER_NODE $NODE_LIST"
 fi
@@ -89,7 +89,7 @@ enable_smb
 start_smb
 
 # Set Username/Password for accessing share
-set_smbpasswd -U $SMBUSERNAME $SMBPASSWORD
+set_smbpasswd $SMBUSERNAME $SMBPASSWORD
 
 # Restart Gluster Volume
 restart_volume $VOLNAME
@@ -97,7 +97,7 @@ restart_volume $VOLNAME
 # Setup ACL perms
 ret=$(check_master_node $MASTER_NODE)
 
-if [ "$?" = "0" ]
+if [ "$ret" = "0" ]
 then
   set_perms $VOLNAME $SMBUSERNAME
 fi
