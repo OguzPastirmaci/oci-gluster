@@ -108,6 +108,7 @@ EOF
 
 }
 echo Creating GlusterFS $PRE
+date %T %D
 
 create_key
 create_network
@@ -115,4 +116,5 @@ create_headnode
 attach_blocks
 create_remove
 
+date %T %D
 echo GlusterFS $PRE IP is: $IP
