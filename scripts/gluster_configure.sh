@@ -37,19 +37,19 @@ create_pvolume()
             vgextend vg_gluster /dev/$i\1
         fi
     done
-
+    vgdisplay
     config_gluster
 }
 
 config_gluster()
 {
-    lvcreate -L 3.5T -n mybrick vg_gluster
-    mkfs.xfs /dev/vg_gluster/mybrick
-    mkdir -p /bricks/mybrick
-    mount /dev/vg_gluster/mybrick /bricks/mybrick
-    echo "/dev/vg_gluster/mybrick  /bricks/mybrick    xfs     defaults,_netdev  0 0" >> /etc/fstab
+    lvcreate -L $1T -n brick1 vg_gluster
+    mkfs.xfs /dev/vg_gluster/brick1
+    mkdir -p /bricks/brick1
+    mount /dev/vg_gluster/brick1 /bricks/brick1
+    echo "/dev/vg_gluster/brick1  /bricks/brick1    xfs     defaults,_netdev  0 0" >> /etc/fstab
     sed -i '/search/d' /etc/resolv.conf 
-    echo "search baremetal.oraclevcn.com publicsubnetad2.baremetal.oraclevcn.com publicsubnetad1.baremetal.oraclevcn.com publicsubnetad3.baremetal.oraclevcn.com localdomain" >> /etc/resolv.conf
+    echo "search baremetal.oraclevcn.com gluster_subnet-d6700.baremetal.oraclevcn.com publicsubnetad1.baremetal.oraclevcn.com publicsubnetad3.baremetal.oraclevcn.com localdomain" >> /etc/resolv.conf
     chattr -R +i /etc/resolv.conf
     #firewall-cmd --zone=public --add-port=24007-24020/tcp --permanent
     #firewall-cmd --reload
@@ -57,18 +57,24 @@ config_gluster()
     systemctl stop firewalld
     systemctl enable glusterd.service
     systemctl start glusterd.service
-    mkdir /bricks/mybrick/brick
+    mkdir /bricks/brick1/brick
 
-    if ["$(hostname -s)" == "glusterfs-server1"]; then
+    if [ "$(hostname -s | tail -c 3)" = "-1" ]; then
         sleep 180
-        export host=`hostname`
-        export server1=`host glusterfs-server2 |cut -c1-17`
-        export server2=`host glusterfs-server3 |cut -c1-17`
-        gluster peer probe ${server1}
-        gluster peer probe ${server2}
+        export host=`hostname -i`
+        for i in `seq 2 $2`;
+        do
+            gluster peer probe 10.0.2.1$i
+        done
         sleep 20
-        gluster volume create glustervol replica 3 transport tcp ${host}:/bricks/mybrick/brick ${server2}:/bricks/mybrick/brick ${server3}:/bricks/mybrick/brick force
+        sudo gluster volume create glustervol transport tcp ${host}:/bricks/brick1/brick
         sleep 10
+        for i in `seq 2 $2`;
+        do
+            sudo gluster volume add-brick glustervol 10.0.2.1$i:/bricks/mybrick/brick force
+            sleep 10
+        done
+        #gluster volume create glustervol replica 3 transport tcp ${host}:/bricks/brick1/brick ${server2}:/bricks/brick1/brick ${server3}:/bricks/brick1/brick force
         gluster volume start glustervol
     fi
 }

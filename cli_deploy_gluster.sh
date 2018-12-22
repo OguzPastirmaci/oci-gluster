@@ -60,7 +60,7 @@ attach_blocks()
       attachIPV4=`oci compute volume-attachment get --volume-attachment-id $attachID --region $region | jq -r .data.ipv4`
       ssh -o StrictHostKeyChecking=no -i $PRE.key $USER@$IP sudo sh /root/oci-hpc-ref-arch/scripts/mount_block.sh attach $attachIQN $attachIPV4
     done
-    ssh -o StrictHostKeyChecking=no -i $PRE.key $USER@$IP sudo sh /var/lib/cloud/instance/user-data.txt create_volume
+    ssh -o StrictHostKeyChecking=no -i $PRE.key $USER@$IP sudo sh /var/lib/cloud/instance/user-data.txt create_volume $total_size $server_nodes
   done
 }
 
@@ -117,6 +117,5 @@ create_network
 create_headnode
 attach_blocks
 create_remove
-config_gluster
 
 echo GlusterFS IP is: $IP
