@@ -19,6 +19,6 @@ In this example we use Gluster which is a scalable, distributed file system that
 * Open Source
 
 ![alt text][arch]
-[arch]: (https://github.com/oci-hpc/oci-hpc-gluster/blob/master/images/640px-GlusterFS_Architecture.png "Architecture")
+[arch]: (images/640px-GlusterFS_Architecture.png)
 
 Enterprises can scale capacity, performance, and availability on demand, with no vendor lock-in, across on-premise, public cloud, and hybrid environments. Gluster is used in production at thousands of enterprises spanning media, healthcare, government, education, web 2.0, and financial services.
