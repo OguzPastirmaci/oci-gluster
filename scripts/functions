@@ -141,6 +141,15 @@ function set_smbpasswd() {
   printf "$2\n$2\n" | smbpasswd -a -U $1 -s
 }
 
+# set_perms(): Set ACLs for Volume for User
+function set_perms() {
+  mkdir -p /glusterpermset
+  mount -t glusterfs -o acl localhost:/$1 /glusterpermset
+  setfacl -m user:$2:rwx /glusterpermset
+  setfacl -m d:user:$2:rwx /glusterpermset
+  umount /glusterpermset
+}
+
 # restart_volume(): Restarts a given glustervolume
 function restart_volume() {
   gluster volume stop $1 force

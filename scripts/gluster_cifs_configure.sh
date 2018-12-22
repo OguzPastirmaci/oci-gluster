@@ -94,4 +94,7 @@ set_smbpasswd -U $SMBUSER $SMBPASSWORD
 # Restart Gluster Volume
 restart_volume $VOLNAME
 
+# Setup ACL perms
+set_perms $VOLNAME $SMBUSER
+
 # end of script
