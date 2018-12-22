@@ -12,9 +12,8 @@
 exec 2>/dev/null
 
 action=$1
-vol_size=$2
-server_nodes=$3
-subnet=$4
+server_nodes=$2
+subnet=$3
 
 
 config_node()
@@ -32,16 +31,21 @@ config_node()
 
 create_pvolume()
 {
+    if [ `lsblk -d --noheadings | awk '{print $1}' | grep nvme0n1` = "nvme0n1" ]; then NVME=true; else NVME=false; fi
     for i in `lsblk -d --noheadings | awk '{print $1}'`
     do 
         if [ $i = "sda" ]; then  next
         else
-            #lsblk
             parted /dev/$i mklabel gpt
             parted -a opt /dev/$i mkpart primary ext4 0% 100%
-            pvcreate /dev/$i\1
-            vgcreate vg_gluster /dev/$i\1
-            vgextend vg_gluster /dev/$i\1
+            if $NVME; then 
+                extension=$i\p1
+            else 
+                extension=$i\1
+            fi
+            pvcreate /dev/$extension
+            vgcreate vg_gluster /dev/$extension
+            vgextend vg_gluster /dev/$extension
         fi
     done
 
@@ -72,7 +76,7 @@ config_gluster()
 
     if [ "$(hostname -s | tail -c 3)" = "-1" ]; then
         echo CONFIGURING GLUSTER SERVER
-        sleep 180
+        sleep 60
         host=`hostname -i`
         for i in `seq 2 $server_nodes`;
         do
