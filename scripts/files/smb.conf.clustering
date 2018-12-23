@@ -16,3 +16,4 @@
         cups options = raw
         # Enable Clustering for CTDB Support with GlusterFS
         clustering = yes
+        log level = 0

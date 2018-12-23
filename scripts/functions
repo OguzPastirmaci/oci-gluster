@@ -23,9 +23,16 @@ function list_length() {
 # install_gluster_smb_reqs(): Ensure all required Gluster and Samba Pkgs
 #   are available.
 function install_gluster_smb_reqs() {
-  yum -y install ctdb samba-vfs-glusterfs
+  yum -y install ctdb samba-vfs-glusterfs tuned
   setenforce 0
   /bin/cp files/selinux_config /etc/selinux/config
+}
+
+# tuned_config(): Enable/Start Tuned
+function tuned_config() {
+  /sbin/chkconfig tuned on
+  /sbin/service tuned start
+  /sbin/tuned-adm profile throughput-performance
 }
 
 # restart_glusterd(): Function to restart Glusterd
@@ -93,6 +100,9 @@ function tune_gluster_for_smb () {
   
   gluster volume set $1 group metadata-cache
   check_status $? "tune_gluster_for_smb:group metadata-cache"
+
+  gluster volume set $1 cluster.lookup-optimize off
+  check_status $? "tune_gluster_for_smb:cluster.lookup-optimize"
 }
 
 # update_smb_auto_start(): Override the default SMB autostart
@@ -138,7 +148,7 @@ function check_master_node() {
 # set_smbpasswd(): Sets the specified users smbpasswd for mounting
 #  the cifs share.
 function set_smbpasswd() {
-  echo -e "$2\n$2" | smbpasswd -s -a $1
+  (echo $2; echo $2) | smbpasswd -s -a $1
 }
 
 # set_perms(): Set ACLs for Volume for User
