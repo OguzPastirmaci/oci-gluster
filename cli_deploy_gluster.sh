@@ -15,16 +15,21 @@ create_network()
   echo -e "${GREEN}CREATING glusterfs-network ${NC}"
   if [ -z "$vcn_id" ]
   then
+    echo no_VCN
     V=`oci network vcn create --region $region --cidr-block $subnet.0/24 --compartment-id $compartment_id --display-name "gluster_vcn-$PRE" --wait-for-state AVAILABLE | jq -r '.data.id'`
     NG=`oci network internet-gateway create --region $region -c $compartment_id --vcn-id $V --is-enabled TRUE --display-name "gluster_ng-$PRE" --wait-for-state AVAILABLE | jq -r '.data.id'`
     RT=`oci network route-table create --region $region -c $compartment_id --vcn-id $V --display-name "gluster_rt-$PRE" --wait-for-state AVAILABLE --route-rules '[{"cidrBlock":"0.0.0.0/0","networkEntityId":"'$NG'"}]' | jq -r '.data.id'`
     SL=`oci network security-list create --region $region -c $compartment_id --vcn-id $V --display-name "gluster_sl-$PRE" --wait-for-state AVAILABLE --egress-security-rules '[{"destination":  "0.0.0.0/0",  "protocol": "all", "isStateless":  null}]' --ingress-security-rules '[{"source":  "0.0.0.0/0",  "protocol": "all", "isStateless":  null}]' | jq -r '.data.id'`
     S=`oci network subnet create -c $compartment_id --vcn-id $V --region $region --availability-domain "$AD" --display-name "gluster_subnet-$PRE" --cidr-block "$subnet.0/26" --route-table-id $RT --security-list-ids '["'$SL'"]' --wait-for-state AVAILABLE | jq -r '.data.id'`
   else
+    echo VCN
     V=$vcn_id
     S=$subnet_id
+    echo NG
     NG=`oci network internet-gateway list --compartment-id ocid1.compartment.oc1..aaaaaaaathxc5bc6bv5qgqrzpc2ggnv2lrpcgsvbjpgugoiylw64s3qi6yia --vcn-id ocid1.vcn.oc1.phx.aaaaaaaauuihsosn6ehnjhbhgy5c45yz4r5zypnd4xexujp5ldheyaqk3o2q | jq -r .data[].id`
+    echo SL
     SL=`oci network security-list create --region $region -c $compartment_id --vcn-id $V --display-name "gluster_sl-$PRE" --wait-for-state AVAILABLE --egress-security-rules '[{"destination":  "0.0.0.0/0",  "protocol": "all", "isStateless":  null}]' --ingress-security-rules '[{"source":  "0.0.0.0/0",  "protocol": "all", "isStateless":  null}]' | jq -r '.data.id'`
+    echo subnet
     subnet=`oci network subnet list --compartment-id $S --vcn-id $V | jq -r '.data[]."virtual-router-ip"' | awk -F. '{print $1"."$2"."$3}'`
   fi
 
