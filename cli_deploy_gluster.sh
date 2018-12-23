@@ -22,16 +22,11 @@ create_network()
     SL=`oci network security-list create --region $region -c $compartment_id --vcn-id $V --display-name "gluster_sl-$PRE" --wait-for-state AVAILABLE --egress-security-rules '[{"destination":  "0.0.0.0/0",  "protocol": "all", "isStateless":  null}]' --ingress-security-rules '[{"source":  "0.0.0.0/0",  "protocol": "all", "isStateless":  null}]' | jq -r '.data.id'`
     S=`oci network subnet create -c $compartment_id --vcn-id $V --region $region --availability-domain "$AD" --display-name "gluster_subnet-$PRE" --cidr-block "$subnet.0/26" --route-table-id $RT --security-list-ids '["'$SL'"]' --wait-for-state AVAILABLE | jq -r '.data.id'`
   else
-    echo VCN
     V=$vcn_id
     S=$subnet_id
-    echo NG
     NG=`oci network internet-gateway list --compartment-id ocid1.compartment.oc1..aaaaaaaathxc5bc6bv5qgqrzpc2ggnv2lrpcgsvbjpgugoiylw64s3qi6yia --vcn-id ocid1.vcn.oc1.phx.aaaaaaaauuihsosn6ehnjhbhgy5c45yz4r5zypnd4xexujp5ldheyaqk3o2q | jq -r .data[].id`
-    echo SL
     SL=`oci network security-list create --region $region -c $compartment_id --vcn-id $V --display-name "gluster_sl-$PRE" --wait-for-state AVAILABLE --egress-security-rules '[{"destination":  "0.0.0.0/0",  "protocol": "all", "isStateless":  null}]' --ingress-security-rules '[{"source":  "0.0.0.0/0",  "protocol": "all", "isStateless":  null}]' | jq -r '.data.id'`
-    echo subnet
     subnet=`oci network subnet list -c $compartment_id --vcn-id $V | jq -r '.data[]."virtual-router-ip"' | awk -F. '{print $1"."$2"."$3}'`
-    echo $subnet
   fi
 }
 
@@ -77,7 +72,10 @@ configure_storage()
   done
   scp -i $PRE.key -r scripts/ $USER@$IP:/home/$USER/
   ip_list=$(echo $priv_ip_list | cut -d ' ' -f-`expr $server_nodes - 1`)
+  sleep 30
+  echo $ip_list
   ssh -i $PRE.key $USER@$IP "chmod +x scripts/*.sh; cd /home/$USER/scripts/; pwd; sudo -E bash -c '/home/$USER/scripts/gluster_cifs_configure.sh -v glustervol -m $subnet.11 -n "$ip_list" -b "/bricks/brick1" -u opc -p "password123"'"
+  smbclient -L localhost -U%
 }
 
 
