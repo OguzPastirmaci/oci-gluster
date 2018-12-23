@@ -93,6 +93,9 @@ function tune_gluster_for_smb () {
   
   gluster volume set $1 group metadata-cache
   check_status $? "tune_gluster_for_smb:group metadata-cache"
+
+  gluster volume set $1 cluster.lookup-optimize off
+  check_status $? "tune_gluster_for_smb:cluster.lookup-optimize"
 }
 
 # update_smb_auto_start(): Override the default SMB autostart
