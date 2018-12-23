@@ -13,7 +13,7 @@ create_network()
 {
   #CREATE NETWORK
   echo -e "${GREEN}CREATING glusterfs-network ${NC}"
-  if [ -z "$vcn_id"]
+  if [ -z "$vcn_id" ]
   then
     V=`oci network vcn create --region $region --cidr-block $subnet.0/24 --compartment-id $compartment_id --display-name "gluster_vcn-$PRE" --wait-for-state AVAILABLE | jq -r '.data.id'`
     NG=`oci network internet-gateway create --region $region -c $compartment_id --vcn-id $V --is-enabled TRUE --display-name "gluster_ng-$PRE" --wait-for-state AVAILABLE | jq -r '.data.id'`
