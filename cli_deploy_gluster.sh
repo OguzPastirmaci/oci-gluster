@@ -62,7 +62,7 @@ attach_blocks()
   done
   scp -i $PRE.key -r scripts/ $USER@$IP:/home/$USER/
   ip_list=$(echo $priv_ip_list | cut -d ' ' -f-`expr $server_nodes - 1`)
-  ssh -i $PRE.key $USER@$IP sudo sh /home/$USER/scripts/gluster_cifs_configure.sh -v glustervol -m 10.0.$subnet.11 -n "$ip_list" -b "/bricks/brick1" -u opc -p "password123"
+  ssh -i $PRE.key $USER@$IP "chmod +x scripts/*.sh; cd /home/$USER/scripts/; pwd; sudo -E bash -c '/home/$USER/scripts/gluster_cifs_configure.sh -v glustervol -m 10.0.$subnet.11 -n "$ip_list" -b "/bricks/brick1" -u opc -p "password123"'"
 }
 
 
