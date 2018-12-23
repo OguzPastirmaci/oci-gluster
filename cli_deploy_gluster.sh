@@ -31,9 +31,8 @@ create_network()
     SL=`oci network security-list create --region $region -c $compartment_id --vcn-id $V --display-name "gluster_sl-$PRE" --wait-for-state AVAILABLE --egress-security-rules '[{"destination":  "0.0.0.0/0",  "protocol": "all", "isStateless":  null}]' --ingress-security-rules '[{"source":  "0.0.0.0/0",  "protocol": "all", "isStateless":  null}]' | jq -r '.data.id'`
     echo subnet
     subnet=`oci network subnet list --compartment-id $S --vcn-id $V | jq -r '.data[]."virtual-router-ip"' | awk -F. '{print $1"."$2"."$3}'`
+    echo $subnet
   fi
-
-
 }
 
 create_headnode()
