@@ -4,12 +4,13 @@
 USER=opc
 server_nodes=3
 full_CIDR=10.0.2.0
-subnet=2
+vcn_id=ocid1.vcn.oc1.phx.aaaaaaaauuihsosn6ehnjhbhgy5c45yz4r5zypnd4xexujp5ldheyaqk3o2q
+subnet_id=ocid1.subnet.oc1.phx.aaaaaaaaq7tlicq4csabg3hmfjmv3szst53xnhtm2nv6l6m7ma5gh5im7glq
 image=Oracle-Linux-7.5-2018.10.16-0
 ad=1
-gluster_server_shape=BM.DenseIO2.52
+gluster_server_shape=VM.Standard2.4
 blksize_tb=1
-blk_num=0
+blk_num=2
 compartment_id=ocid1.compartment.oc1..aaaaaaaathxc5bc6bv5qgqrzpc2ggnv2lrpcgsvbjpgugoiylw64s3qi6yia
 PRE=`uuidgen | cut -c-5`
 export region=us-ashburn-1
