@@ -36,16 +36,9 @@ create_pvolume()
     do 
         if [ $i = "sda" ]; then  next
         else
-            parted /dev/$i mklabel gpt
-            parted -a opt /dev/$i mkpart primary ext4 0% 100%
-            if $NVME; then 
-                extension=$i\p1
-            else 
-                extension=$i\1
-            fi
-            pvcreate /dev/$extension
-            vgcreate vg_gluster /dev/$extension
-            vgextend vg_gluster /dev/$extension
+            pvcreate --dataalignment 256K /dev/$i
+            vgcreate vg_gluster /dev/$i
+            vgextend vg_gluster /dev/$i
         fi
     done
 
@@ -58,7 +51,7 @@ config_gluster()
     echo CONFIG GLUSTER
     lvcreate -l 100%VG -n brick1 vg_gluster
     lvdisplay
-    mkfs.xfs /dev/vg_gluster/brick1
+    mkfs.xfs -f -i 512 /dev/vg_gluster/brick1
     mkdir -p /bricks/brick1
     mount /dev/vg_gluster/brick1 /bricks/brick1
     echo "/dev/vg_gluster/brick1  /bricks/brick1    xfs     defaults,_netdev  0 0" >> /etc/fstab

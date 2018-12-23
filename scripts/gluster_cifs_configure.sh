@@ -55,6 +55,9 @@ done
 # Install CTDB and SMB Prereqs
 install_gluster_smb_reqs
 
+# Tuned Setup
+tuned_config
+
 # Update the SMB Auto Start(Only) Scripts
 # and enable SMB for clustering
 update_smb_auto_start
