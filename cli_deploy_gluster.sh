@@ -23,9 +23,11 @@ create_network()
 create_headnode()
 {
   #CREATE BLOCK AND HEADNODE
+  priv_ip_list=''
   BLKSIZE_GB=`expr $blksize_tb \* 1024`
   for i in `seq $server_nodes -1 1`; do
     echo -e "${GREEN}CREATING glusterfs-server$i ${NC}"
+    priv_ip_list=$priv_ip_list' '10.0.$subnet.1$i
     masterID=`oci compute instance launch $INFO --shape "$gluster_server_shape" -c $compartment_id --display-name "gluster-server-$PRE-$i" --image-id $OS --subnet-id $S --private-ip 10.0.$subnet.1$i --wait-for-state RUNNING --user-data-file scripts/gluster_configure.sh --ssh-authorized-keys-file $PRE.key.pub | jq -r '.data.id'`
     for k in `seq 1 $blk_num`; do
       echo -e "${GREEN}CREATING glusterfs-block-$PRE-$i-$k ${NC}"
@@ -58,6 +60,9 @@ attach_blocks()
     echo -e "${GREEN}CONFIGURING gluster-server-$PRE-$i ${NC}"
     ssh -o StrictHostKeyChecking=no -i $PRE.key $USER@$IP sudo sh /var/lib/cloud/instance/user-data.txt create_volume $server_nodes $subnet
   done
+  scp -i $PRE.key -r scripts/ $USER@$IP:/home/$USER/
+  ip_list=$(echo $priv_ip_list | cut -d ' ' -f-`expr $server_nodes - 1`)
+  ssh -i $PRE.key $USER@$IP sudo sh /home/$USER/scripts/gluster_cifs_configure.sh -v glustervol -m 10.0.$subnet.11 -n "$ip_list" -b "/bricks/brick1" -u opc -p "password123"
 }
 
 
