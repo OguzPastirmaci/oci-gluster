@@ -51,7 +51,7 @@ config_gluster()
     echo CONFIG GLUSTER
     lvcreate -l 100%VG -n brick1 vg_gluster
     lvdisplay
-    mkfs.xfs -f -i 512 /dev/vg_gluster/brick1
+    mkfs.xfs -f -i size=512 /dev/vg_gluster/brick1
     mkdir -p /bricks/brick1
     mount /dev/vg_gluster/brick1 /bricks/brick1
     echo "/dev/vg_gluster/brick1  /bricks/brick1    xfs     defaults,_netdev  0 0" >> /etc/fstab
