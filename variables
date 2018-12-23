@@ -3,6 +3,7 @@
 #SET TENANCY
 USER=opc
 server_nodes=3
+full_CIDR=10.0.2.0
 subnet=2
 image=Oracle-Linux-7.5-2018.10.16-0
 ad=1
@@ -19,6 +20,7 @@ export region=us-ashburn-1
 AD=`oci iam availability-domain list -c $compartment_id --region $region --output table | grep 'AD-'$ad | awk '{ print $4 }'`
 OS=`oci compute image list -c $compartment_id --region $region --output table --query "data [*].{ImageName:\"display-name\", OCID:id}" | grep $image | awk '{ print $4 }'`
 INFO='--region '$region' --availability-domain '$AD' -c '$compartment_id
+subnet=`echo $full_CIDR | awk -F. '{print $1"."$2"."$3}'`
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'

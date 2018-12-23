@@ -73,14 +73,14 @@ config_gluster()
         host=`hostname -i`
         for i in `seq 2 $server_nodes`;
         do
-            gluster peer probe 10.0.$subnet.1$i
+            gluster peer probe $subnet.1$i
         done
         sleep 20
         gluster volume create glustervol transport tcp ${host}:/bricks/brick1/brick force
         sleep 10
         for i in `seq 2 $server_nodes`;
         do
-            gluster volume add-brick glustervol 10.0.$subnet.1$i:/bricks/brick1/brick force
+            gluster volume add-brick glustervol $subnet.1$i:/bricks/brick1/brick force
             sleep 10
         done
         #gluster volume create glustervol replica 3 transport tcp ${host}:/bricks/brick1/brick ${server2}:/bricks/brick1/brick ${server3}:/bricks/brick1/brick force
