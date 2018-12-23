@@ -23,8 +23,7 @@ create_network()
   else
     V=$vcn_id
     S=$subnet_id
-    NG=`oci network internet-gateway create --region $region -c $compartment_id --vcn-id $V --is-enabled TRUE --display-name "gluster_ng-$PRE" --wait-for-state AVAILABLE | jq -r '.data.id'`
-    RT=`oci network route-table create --region $region -c $compartment_id --vcn-id $V --display-name "gluster_rt-$PRE" --wait-for-state AVAILABLE --route-rules '[{"cidrBlock":"0.0.0.0/0","networkEntityId":"'$NG'"}]' | jq -r '.data.id'`
+    NG=`oci network internet-gateway list --compartment-id ocid1.compartment.oc1..aaaaaaaathxc5bc6bv5qgqrzpc2ggnv2lrpcgsvbjpgugoiylw64s3qi6yia --vcn-id ocid1.vcn.oc1.phx.aaaaaaaauuihsosn6ehnjhbhgy5c45yz4r5zypnd4xexujp5ldheyaqk3o2q | jq -r .data[].id`
     SL=`oci network security-list create --region $region -c $compartment_id --vcn-id $V --display-name "gluster_sl-$PRE" --wait-for-state AVAILABLE --egress-security-rules '[{"destination":  "0.0.0.0/0",  "protocol": "all", "isStateless":  null}]' --ingress-security-rules '[{"source":  "0.0.0.0/0",  "protocol": "all", "isStateless":  null}]' | jq -r '.data.id'`
     subnet=`oci network subnet list --compartment-id $S --vcn-id $V | jq -r '.data[]."virtual-router-ip"' | awk -F. '{print $1"."$2"."$3}'`
   fi
