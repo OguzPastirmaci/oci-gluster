@@ -9,7 +9,7 @@
 set -e
 
 # Source Functions
-source functions
+. ./functions
 
 # print_usage(): Function to print script usage
 function print_usage() {
