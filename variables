@@ -9,13 +9,13 @@ vcn_id=
 subnet_id=
 
 #SET GLUSTER SERVER
-gluster_server_shape=VM.Standard2.4
+gluster_server_shape=BM.DenseIO2.52
 image=Oracle-Linux-7.5-2018.10.16-0
-region=us-phoenix-1 #us-ashburn-1,eu-frankfurt-1,uk-london-1
+region=us-ashburn-1 #us-phoenix-1,us-ashburn-1,eu-frankfurt-1,uk-london-1
 ad=1
-server_nodes=3
+server_nodes=2
 blksize_tb=1
-blk_num=2
+blk_num=0
 full_CIDR=10.0.2.0
 
 #CALCULATED VARIABLES
@@ -23,7 +23,7 @@ PRE=`uuidgen | cut -c-5`
 USER=opc
 AD=`oci iam availability-domain list --profile $profile -c $compartment_id --region $region | jq -r .data[].name | grep -e '-'$ad`
 OS=`oci compute image list -c $compartment_id --region $region --all | jq -r '.data[] | select(."display-name" | contains ("'$image'")).id'`
-INFO='--region '$region' --availability-domain '$AD' -c '$compartment_id
+INFO='--profile '$profile' --region '$region' --availability-domain '$AD' -c '$compartment_id
 subnet=`echo $full_CIDR | awk -F. '{print $1"."$2"."$3}'`
 
 #BASH COLORS
