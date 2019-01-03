@@ -2,14 +2,14 @@
 
 #SET COMPARTMENT
 profile=DEFAULT
-compartment_id=ocid1.compartment.oc1..aaaaaaaathxc5bc6bv5qgqrzpc2ggnv2lrpcgsvbjpgugoiylw64s3qi6yia
+compartment_id=ocid1.compartment.oc1..aaaaaaaab65r3seb5h5f6r3q2e4gjr2do6f73y3rgmfvta3n6no6kkllovja
 
 #IF USING AN EXISTING NETWORK SET
 vcn_id=
 subnet_id=
 
 #SET GLUSTER SERVER
-gluster_server_shape=BM.DenseIO2.52
+gluster_server_shape=BM.HPC2.36
 image=Oracle-Linux-7.5-2018.10.16-0
 region=us-ashburn-1 #us-phoenix-1,us-ashburn-1,eu-frankfurt-1,uk-london-1
 ad=1
