@@ -11,8 +11,8 @@ subnet_id=
 #SET GLUSTER SERVER
 gluster_server_shape=BM.HPC2.36
 image=Oracle-Linux-7.5-2018.10.16-0
-region=us-ashburn-1 #us-phoenix-1,us-ashburn-1,eu-frankfurt-1,uk-london-1
-ad=1
+region=uk-london-1 #us-phoenix-1,us-ashburn-1,eu-frankfurt-1,uk-london-1
+ad=2
 server_nodes=2
 blksize_tb=1
 blk_num=0
