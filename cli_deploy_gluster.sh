@@ -98,6 +98,7 @@ export SL=$SL
 export S=$S
 export BV=$BV
 export masterID=$masterID
+export profile=$profile
 EOF
 
 cat << "EOF" >> removeCluster-$PRE.sh
