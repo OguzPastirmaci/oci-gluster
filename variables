@@ -22,7 +22,7 @@ full_CIDR=10.0.2.0
 PRE=`uuidgen | cut -c-5`
 USER=opc
 AD=`oci iam availability-domain list --profile $profile -c $compartment_id --region $region | jq -r .data[].name | grep -e '-'$ad`
-OS=`oci compute image list --profile $profile -c $compartment_id --region $region --output table --query "data [*].{ImageName:\"display-name\", OCID:id}" | grep $IMAGE | awk '{ print $4 }'`
+OS=`oci compute image list --profile $profile -c $compartment_id --region $region --output table --query "data [*].{ImageName:\"display-name\", OCID:id}" | grep $iamge | awk '{ print $4 }'`
 INFO='--profile '$profile' --region '$region' --availability-domain '$AD' -c '$compartment_id
 subnet=`echo $full_CIDR | awk -F. '{print $1"."$2"."$3}'`
 
