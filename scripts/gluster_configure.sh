@@ -21,7 +21,7 @@ config_node()
     systemctl stop firewalld
     systemctl disable firewalld
     setenforce 0
-    yum-config-manager --add-repo http://yum.oracle.com/repo/OracleLinux/OL7/developer_gluster310/x86_64
+    yum-config-manager --add-repo http://yum.oracle.com/repo/OracleLinux/OL7/gluster312/x86_64
     yum install -y glusterfs-server samba git
     cd ~
     git clone https://github.com/oci-hpc/oci-hpc-ref-arch
