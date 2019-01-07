@@ -11,29 +11,15 @@
 ######################################################################################################################################################
 exec 2>/dev/null
 
-action=$1
-server_nodes=$2
-subnet=$3
+node1=$1
+node2=$2
 
-
-config_node()
-{
-    systemctl stop firewalld
-    systemctl disable firewalld
-    setenforce 0
-    yum-config-manager --add-repo http://yum.oracle.com/repo/OracleLinux/OL7/gluster312/x86_64
-    yum install -y glusterfs-server samba git
-    cd ~
-    git clone https://github.com/oci-hpc/oci-hpc-ref-arch
-
-    touch /var/log/CONFIG_COMPLETE
-}
 
 create_pvolume()
 {
     if [ `lsblk -d --noheadings | awk '{print $1}' | grep nvme0n1` = "nvme0n1" ]; then NVME=true; else NVME=false; fi
     for i in `lsblk -d --noheadings | awk '{print $1}'`
-    do 
+    do
         if [ $i = "sda" ]; then next
         else
             pvcreate --dataalignment 256K /dev/$i
@@ -49,14 +35,14 @@ create_pvolume()
 config_gluster()
 {
     echo CONFIG GLUSTER
-    lvcreate -l 100%VG --stripes 8 --stripesize 64 -n brick1 vg_gluster
+    lvcreate -y -l 100%VG --stripes 8 -n brick1 vg_gluster
     lvdisplay
     mkfs.xfs -f -i size=512 /dev/vg_gluster/brick1
     mkdir -p /bricks/brick1
     mount -o noatime,inode64 /dev/vg_gluster/brick1 /bricks/brick1
     echo "/dev/vg_gluster/brick1  /bricks/brick1    xfs     noatime,inode64  1 2" >> /etc/fstab
     df -h
-    sed -i '/search/d' /etc/resolv.conf 
+    sed -i '/search/d' /etc/resolv.conf
     echo "search baremetal.oraclevcn.com gluster_subnet-d6700.baremetal.oraclevcn.com publicsubnetad1.baremetal.oraclevcn.com publicsubnetad3.baremetal.oraclevcn.com localdomain" >> /etc/resolv.conf
     chattr -R +i /etc/resolv.conf
     #firewall-cmd --zone=public --add-port=24007-24020/tcp --permanent
@@ -76,14 +62,13 @@ config_gluster()
             gluster peer probe $subnet.1$i
         done
         sleep 20
-        gluster volume create glustervol transport tcp ${host}:/bricks/brick1/brick force
+        gluster volume create glustervol transport tcp ${node1}:/bricks/brick1/brick force
         sleep 10
         for i in `seq 2 $server_nodes`;
         do
-            gluster volume add-brick glustervol $subnet.1$i:/bricks/brick1/brick force
+            gluster volume add-brick glustervol ${node2}:/bricks/brick1/brick force
             sleep 10
         done
-        #gluster volume create glustervol replica 3 transport tcp ${host}:/bricks/brick1/brick ${server2}:/bricks/brick1/brick ${server3}:/bricks/brick1/brick force
         gluster volume start glustervol force
         sleep 20
         gluster volume start glustervol force
@@ -92,5 +77,4 @@ config_gluster()
     fi
 }
 
-if [ $action = "create_volume" ]; then create_pvolume
-else config_node; fi
+create_pvolume
