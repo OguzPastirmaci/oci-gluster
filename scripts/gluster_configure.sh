@@ -9,6 +9,7 @@
 ### 5- install and configure a gluster volume called glustervol using server1-mybrick, server2-mybrick (distributed)
 ###
 ######################################################################################################################################################
+
 exec 2>/dev/null
 
 action=$1

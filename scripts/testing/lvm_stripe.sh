@@ -1,14 +1,5 @@
 #!/bin/bash
-#yum update -y
-#######################################################################################################################################################
-### This bootstrap script runs on glusterFS server and configures the following
-### 1- install gluster packages
-### 2- formats the NVME disks (HighIO1.36 shape), creates a LVM LV called "brick" (XFS)
-### 3- fixes the resolve.conf file. GlusterFS needs DNS to work properly so make sure you update the below domains to match your environment
-### 4- disable local firewall. Feel free to update this script to open only the required ports.
-### 5- install and configure a gluster volume called glustervol using server1-mybrick, server2-mybrick and server3-mybrick LVs (replicas)
-###
-######################################################################################################################################################
+
 exec 2>/dev/null
 
 node1=$1

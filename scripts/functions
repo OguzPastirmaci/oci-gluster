@@ -175,3 +175,9 @@ function restart_volume() {
   sleep 5
   gluster volume start $1 force
 }
+
+# test_smb(): Tests that given SMB share is exported correctly
+function test_smb() {
+  res=$(check_smbclient -L localhost -U%)
+  check_status $? "restart_glusterd"
+}
