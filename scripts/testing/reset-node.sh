@@ -25,4 +25,5 @@ do
   fi
 done
 
-echo "Remove /etc/fstab"
+sed -i '/\/dev\/vg_gluster/d' /etc/fstab
+

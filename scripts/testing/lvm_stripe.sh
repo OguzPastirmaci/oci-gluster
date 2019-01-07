@@ -44,28 +44,6 @@ config_gluster()
     systemctl start glusterd.service
     mkdir /bricks/brick1/brick
 
-    if [ "$(hostname -s | tail -c 3)" = "-1" ]; then
-        echo CONFIGURING GLUSTER SERVER
-        sleep 60
-        host=`hostname -i`
-        for i in `seq 2 $server_nodes`;
-        do
-            gluster peer probe $subnet.1$i
-        done
-        sleep 20
-        gluster volume create glustervol transport tcp ${node1}:/bricks/brick1/brick force
-        sleep 10
-        for i in `seq 2 $server_nodes`;
-        do
-            gluster volume add-brick glustervol ${node2}:/bricks/brick1/brick force
-            sleep 10
-        done
-        gluster volume start glustervol force
-        sleep 20
-        gluster volume start glustervol force
-        gluster volume status
-        gluster volume info
-    fi
 }
 
 create_pvolume
