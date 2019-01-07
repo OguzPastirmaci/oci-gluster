@@ -47,6 +47,12 @@ config_gluster()
       mkdir -p ${x}/multibrick
     done
 
+    sed -i '/search/d' /etc/resolv.conf 
+    echo "search baremetal.oraclevcn.com gluster_subnet-d6700.baremetal.oraclevcn.com publicsubnetad1.baremetal.oraclevcn.com publicsubnetad3.baremetal.oraclevcn.com localdomain" >> /etc/resolv.conf
+    chattr -R +i /etc/resolv.conf
+
+    systemctl enable glusterd
+    systemctl start glusterd
 
 }
 

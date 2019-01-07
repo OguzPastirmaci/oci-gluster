@@ -73,7 +73,7 @@ function create_ctdb_volume() {
   done
 
   mkdir -p ${brick}
-  gluster volume create ctdb replica $replica_size transport tcp $cluster
+  gluster volume create ctdb replica $replica_size transport tcp $cluster force
   check_status $? "create_ctdb_volume:create ctdb volume"
 
   gluster volume start ctdb
@@ -103,6 +103,13 @@ function tune_gluster_for_smb () {
 
   gluster volume set $1 cluster.lookup-optimize off
   check_status $? "tune_gluster_for_smb:cluster.lookup-optimize"
+
+  gluster volume set $1 server.event-threads 8
+  check_status $? "tune_gluster_for_smb:server.event-threads"
+  
+  gluster volume set $1 client.event-threads 8
+  check_status $? "tune_gluster_for_smb:client.event-threads"
+
 }
 
 # update_smb_auto_start(): Override the default SMB autostart
@@ -157,6 +164,8 @@ function set_perms() {
   mount -t glusterfs -o acl localhost:/$1 /glusterpermset
   setfacl -m user:$2:rwx /glusterpermset
   setfacl -m d:user:$2:rwx /glusterpermset
+  mkdir /glusterpermset/opc
+  chown $2.$2 /glusterpermset/opc
   umount /glusterpermset
 }
 
