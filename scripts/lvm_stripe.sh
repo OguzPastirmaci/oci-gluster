@@ -49,12 +49,12 @@ create_pvolume()
 config_gluster()
 {
     echo CONFIG GLUSTER
-    lvcreate -l 100%VG -n brick1 vg_gluster
+    lvcreate -l 100%VG --stripes 8 --stripesize 64 -n brick1 vg_gluster
     lvdisplay
-    mkfs.xfs -f -i size=512 /dev/vg_gluster/brick1
+    mkfs.xfs -f -i size=512 su=64K,sw=8 /dev/vg_gluster/brick1
     mkdir -p /bricks/brick1
     mount /dev/vg_gluster/brick1 /bricks/brick1
-    echo "/dev/vg_gluster/brick1  /bricks/brick1    xfs     defaults,_netdev  0 0" >> /etc/fstab
+    echo "/dev/vg_gluster/brick1  /bricks/brick1    xfs     noatime,inode64  0 0" >> /etc/fstab
     df -h
     sed -i '/search/d' /etc/resolv.conf 
     echo "search baremetal.oraclevcn.com gluster_subnet-d6700.baremetal.oraclevcn.com publicsubnetad1.baremetal.oraclevcn.com publicsubnetad3.baremetal.oraclevcn.com localdomain" >> /etc/resolv.conf

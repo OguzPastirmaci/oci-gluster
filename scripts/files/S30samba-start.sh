@@ -84,7 +84,7 @@ function add_samba_share () {
         STRING+="map hidden = no\n"
         STRING+="map read only = no\n"
         STRING+="map system = no\n"
-        STRING+="store dos attributes = yes\n"
+        STRING+="store dos attributes = no\n"
         printf "$STRING"  >> ${CONFIGFILE}
 }
 

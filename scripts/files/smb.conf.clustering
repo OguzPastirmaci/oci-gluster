@@ -14,6 +14,14 @@
         printcap name = cups
         load printers = no
         cups options = raw
+        
         # Enable Clustering for CTDB Support with GlusterFS
         clustering = yes
+        
+        # Set log level to zero (Performance Gain)
         log level = 0
+
+        # Enable Samba/CIFS Multichannel Support
+        # Verify on windows client powershell: Get-SmbMultichannelConnection
+        server multi channel support = yes
+
