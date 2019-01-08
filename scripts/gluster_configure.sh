@@ -3,7 +3,7 @@
 #######################################################################################################################################################
 ### This bootstrap script runs on glusterFS server and configures the following
 ### 1- install gluster packages
-### 2- formats the disks (Block of NVME), creates a LVM LV called "brick" (XFS)
+### 2- formats the disks (NVME), creates a LVM LV called "brick" (XFS)
 ### 3- fixes the resolve.conf file. GlusterFS needs DNS to work properly so make sure you update the below domains to match your environment
 ### 4- disable local firewall. Feel free to update this script to open only the required ports.
 ### 5- install and configure a gluster volume called glustervol using server1-mybrick, server2-mybrick (distributed)
@@ -19,11 +19,18 @@ subnet=$3
 
 config_node()
 {
+    # Disable firewalld TODO: Add firewall settings to node in future rev.
     systemctl stop firewalld
     systemctl disable firewalld
+
+    # Disable Selinux TODO: Enable Selinux
     setenforce 0
+
+    # Enable latest Oracle Linux Gluster release
     yum-config-manager --add-repo http://yum.oracle.com/repo/OracleLinux/OL7/gluster312/x86_64
-    yum install -y glusterfs-server samba git
+    yum install -y glusterfs-server samba git nvme-cli
+
+    # Clone OCI-HPC Reference Architecture
     cd ~
     git clone https://github.com/oci-hpc/oci-hpc-ref-arch
 
@@ -50,22 +57,27 @@ create_pvolume()
 config_gluster()
 {
     echo CONFIG GLUSTER
+    # Create Logical Volume for Gluster Brick
     lvcreate -l 100%VG -n brick1 vg_gluster
     lvdisplay
-    mkfs.xfs -f -i size=512 /dev/vg_gluster/brick1
+    
+    # Create XFS filesystem with Inodes set at 512 and Directory block size at 8192
+    mkfs.xfs -f -i size=512 -n size=8192 /dev/vg_gluster/brick1
     mkdir -p /bricks/brick1
     mount /dev/vg_gluster/brick1 /bricks/brick1
-    echo "/dev/vg_gluster/brick1  /bricks/brick1    xfs     defaults,_netdev  0 0" >> /etc/fstab
+    echo "/dev/vg_gluster/brick1  /bricks/brick1    xfs     noatime,inode64  1 2" >> /etc/fstab
     df -h
+    
+    # Setup DNS search path
     sed -i '/search/d' /etc/resolv.conf 
     echo "search baremetal.oraclevcn.com gluster_subnet-d6700.baremetal.oraclevcn.com publicsubnetad1.baremetal.oraclevcn.com publicsubnetad3.baremetal.oraclevcn.com localdomain" >> /etc/resolv.conf
     chattr -R +i /etc/resolv.conf
-    #firewall-cmd --zone=public --add-port=24007-24020/tcp --permanent
-    #firewall-cmd --reload
-    systemctl disable firewalld
-    systemctl stop firewalld
+    
+    # Start gluster services
     systemctl enable glusterd.service
     systemctl start glusterd.service
+    
+    # Create gluster brick
     mkdir /bricks/brick1/brick
 
     if [ "$(hostname -s | tail -c 3)" = "-1" ]; then
@@ -74,22 +86,21 @@ config_gluster()
         host=`hostname -i`
         for i in `seq 2 $server_nodes`;
         do
-            gluster peer probe $subnet.1$i
+            gluster peer probe $subnet.1$i --mode=script
         done
         sleep 20
-        gluster volume create glustervol transport tcp ${host}:/bricks/brick1/brick force
+        gluster volume create glustervol transport tcp ${host}:/bricks/brick1/brick force --mode=script
         sleep 10
         for i in `seq 2 $server_nodes`;
         do
-            gluster volume add-brick glustervol $subnet.1$i:/bricks/brick1/brick force
+            gluster volume add-brick glustervol $subnet.1$i:/bricks/brick1/brick force --mode=script
             sleep 10
         done
-        #gluster volume create glustervol replica 3 transport tcp ${host}:/bricks/brick1/brick ${server2}:/bricks/brick1/brick ${server3}:/bricks/brick1/brick force
-        gluster volume start glustervol force
+        gluster volume start glustervol force --mode=script
         sleep 20
-        gluster volume start glustervol force
-        gluster volume status
-        gluster volume info
+        gluster volume start glustervol force --mode=script
+        gluster volume status --mode=script
+        gluster volume info --mode=script
     fi
 }
 

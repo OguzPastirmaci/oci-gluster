@@ -36,8 +36,6 @@ config_gluster()
     sed -i '/search/d' /etc/resolv.conf
     echo "search baremetal.oraclevcn.com gluster_subnet-d6700.baremetal.oraclevcn.com publicsubnetad1.baremetal.oraclevcn.com publicsubnetad3.baremetal.oraclevcn.com localdomain" >> /etc/resolv.conf
     chattr -R +i /etc/resolv.conf
-    #firewall-cmd --zone=public --add-port=24007-24020/tcp --permanent
-    #firewall-cmd --reload
     systemctl disable firewalld
     systemctl stop firewalld
     systemctl enable glusterd.service

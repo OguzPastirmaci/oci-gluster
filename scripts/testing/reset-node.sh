@@ -1,12 +1,13 @@
 #!/bin/bash
 
 # Reset Gluster Specific Settings
-gluster volume stop glustervol force
+umount /glusterpermset
+gluster volume stop glustervol force --mode=script
 service smb stop
 service ctdb stop
-gluster volume stop ctdb force
-gluster volume remove glustervol force
-gluster volume remove ctdb force
+gluster volume stop ctdb force --mode=script
+gluster volume remove glustervol force --mode=script
+gluster volume remove ctdb force --mode=script
 service glusterfsd stop
 service glusterfs stop
 # Remove LVM setup
@@ -26,4 +27,4 @@ do
 done
 
 sed -i '/\/dev\/vg_gluster/d' /etc/fstab
-
+rmdir /glusterpermset

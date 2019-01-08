@@ -33,6 +33,9 @@ function tuned_config() {
   /sbin/chkconfig tuned on
   /sbin/service tuned start
   /sbin/tuned-adm profile throughput-performance
+
+  /sbin/service irqbalance stop
+  /sbin/chkconfig irqbalance off
 }
 
 # restart_glusterd(): Function to restart Glusterd
@@ -73,7 +76,7 @@ function create_ctdb_volume() {
   done
 
   mkdir -p ${brick}
-  gluster volume create ctdb replica $replica_size transport tcp $cluster force
+  gluster volume create ctdb replica $replica_size transport tcp $cluster force --mode=script
   check_status $? "create_ctdb_volume:create ctdb volume"
 
   gluster volume start ctdb
@@ -92,22 +95,22 @@ function create_ctdb_cluster_list {
 # tune_gluster_for_smb(): Set recommended tuning params
 #   for new gluster volume for samba share.
 function tune_gluster_for_smb () { 
-  gluster volume set $1 performance.cache-samba-metadata on
+  gluster volume set $1 performance.cache-samba-metadata on --mode=script
   check_status $? "tune_gluster_for_smb:performance.cache-samba-metadata"
   
-  gluster volume set $1 storage.batch-fsync-delay-usec 0
+  gluster volume set $1 storage.batch-fsync-delay-usec 0 --mode=script
   check_status $? "tune_gluster_for_smb:storage.batch-fsync-delay-usec"
   
-  gluster volume set $1 group metadata-cache
+  gluster volume set $1 group metadata-cache --mode=script
   check_status $? "tune_gluster_for_smb:group metadata-cache"
 
-  gluster volume set $1 cluster.lookup-optimize off
+  gluster volume set $1 cluster.lookup-optimize off --mode=script
   check_status $? "tune_gluster_for_smb:cluster.lookup-optimize"
 
-  gluster volume set $1 server.event-threads 8
+  gluster volume set $1 server.event-threads 8 --mode=script
   check_status $? "tune_gluster_for_smb:server.event-threads"
   
-  gluster volume set $1 client.event-threads 8
+  gluster volume set $1 client.event-threads 8 --mode=script
   check_status $? "tune_gluster_for_smb:client.event-threads"
 
 }
@@ -171,9 +174,9 @@ function set_perms() {
 
 # restart_volume(): Restarts a given glustervolume
 function restart_volume() {
-  echo "y" | gluster volume stop $1 force
+  gluster volume stop $1 force --mode=script
   sleep 5
-  gluster volume start $1 force
+  gluster volume start $1 force --mode=script
 }
 
 # test_smb(): Tests that given SMB share is exported correctly
