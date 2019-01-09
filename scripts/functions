@@ -184,3 +184,15 @@ function test_smb() {
   res=$(check_smbclient -L localhost -U%)
   check_status $? "restart_glusterd"
 }
+
+# secondary_vnic_config(): Configure instance secondary vnic 
+#   for multi-channel support
+function secondary_vnic_config() {
+  # Download secondary_vnic_all_configure.sh script
+  wget https://docs.cloud.oracle.com/iaas/Content/Resources/Assets/secondary_vnic_all_configure.sh
+  check_status $? "secondary_vnic_config: Download Script"
+  
+  # Add secondary vnic to active instance
+  bash secondary_vnic_all_configure.sh -c
+  check_status $? "secondary_vnic_config: Create VNIC in Instance"
+}

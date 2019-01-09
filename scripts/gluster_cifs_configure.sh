@@ -13,8 +13,8 @@ set -e
 
 # print_usage(): Function to print script usage
 function print_usage() {
-  echo "$0 -v volume -m \"masternode ip address\" -n \"list of workernode addresses\" -b \"brick path\" -u \"SMB Username\" -p \"SMB Password\""
-  echo "Example: $0 -v examplevolume -m 1.1.1.1 -n \"1.1.1.2 1.1.1.3 1.1.1.4\" -b \"/brick/mybrick\" -u \"opc\" -p \"password123\""
+  echo "$0 -v volume -m \"masternode ip address\" -n \"list of workernode addresses\" -b \"brick path\" -u \"SMB Username\" -p \"SMB Password\" -s \"Secondary VNIC yes|no\" "
+  echo "Example: $0 -v examplevolume -m 1.1.1.1 -n \"1.1.1.2 1.1.1.3 1.1.1.4\" -b \"/brick/mybrick\" -u \"opc\" -p \"password123\" -s \"yes\""
   exit 1
 }
 
@@ -44,6 +44,9 @@ while getopts ":v:m:n:b:u:p:" opt; do
     ;;
   p)
     SMBPASSWORD=$OPTARG
+    ;;
+  s)
+    SECONDARY_VNIC=$OPTARG
     ;;
   \?)
     echo "Invalid option: -$OPTARG" >&2
@@ -105,5 +108,9 @@ then
   set_perms $VOLNAME $SMBUSERNAME
 fi
 
+if [ "$SECONDARY_VNIC" = "yes" ]
+then
+  secondary_vnic_config
+fi
 
 # end of script
