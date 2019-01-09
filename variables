@@ -17,6 +17,7 @@ server_nodes=2
 blksize_tb=1
 blk_num=0
 full_CIDR=10.0.2.0
+cifs_multi_channel=no
 
 #CALCULATED VARIABLES
 PRE=`uuidgen | cut -c-5`

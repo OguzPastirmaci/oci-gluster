@@ -15,7 +15,7 @@ exec 2>/dev/null
 action=$1
 server_nodes=$2
 subnet=$3
-lvm_stripe_size="64k"
+lvm_stripe_size="512k"
 gluster_yum_release="http://yum.oracle.com/repo/OracleLinux/OL7/gluster312/x86_64"
 oci_hpc_git="https://github.com/oci-hpc/oci-hpc-ref-arch"
 

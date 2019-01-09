@@ -40,6 +40,11 @@ create_headnode()
     echo -e "${GREEN}CREATING glusterfs-server$i ${NC}"
     priv_ip_list=$priv_ip_list' '$subnet.1$i
     masterID=`oci compute instance launch $INFO --shape "$gluster_server_shape" -c $compartment_id --display-name "gluster-server-$PRE-$i" --image-id $OS --subnet-id $S --private-ip $subnet.1$i --wait-for-state RUNNING --user-data-file scripts/gluster_configure.sh --ssh-authorized-keys-file $PRE.key.pub | jq -r '.data.id'`
+    if [ "$cifs_multi_channel" = "yes" ]
+    then
+      echo -e "${GREEN}Creating secondary vnic for CIFS multi-channel support"
+      svnic=`oci compute instance attach-vnic --instance-id $masterID --subnet-id $S --nic-index 1 --vnic-display-name "gluster-server-$PRE-$i-svnic"--wait`
+    fi
     for k in `seq 1 $blk_num`; do
       echo -e "${GREEN}CREATING glusterfs-block-$PRE-$i-$k ${NC}"
       BV=`oci bv volume create $INFO --display-name "gluster-block-$PRE-$i-$k" --size-in-gbs $BLKSIZE_GB --wait-for-state AVAILABLE | jq -r '.data.id'`;
