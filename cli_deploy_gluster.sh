@@ -74,7 +74,7 @@ configure_storage()
       ssh -o StrictHostKeyChecking=no -i $PRE.key $USER@$IP sudo sh /root/oci-hpc-ref-arch/scripts/mount_block.sh attach $attachIQN $attachIPV4
     done
     echo -e "${GREEN}CONFIGURING gluster-server-$PRE-$i ${NC}"
-    ssh -o StrictHostKeyChecking=no -i $PRE.key $USER@$IP sudo sh /var/lib/cloud/instance/user-data.txt create_volume $server_nodes $subnet
+    ssh -o StrictHostKeyChecking=no -i $PRE.key $USER@$IP sudo sh /var/lib/cloud/instance/user-data.txt config_node $server_nodes $subnet
   done
   scp -i $PRE.key -r scripts/ $USER@$IP:/home/$USER/
   ip_list=$(echo $priv_ip_list | cut -d ' ' -f-`expr $server_nodes - 1`)
