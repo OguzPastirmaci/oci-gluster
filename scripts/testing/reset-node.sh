@@ -6,8 +6,8 @@ gluster volume stop glustervol force --mode=script
 service smb stop
 service ctdb stop
 gluster volume stop ctdb force --mode=script
-gluster volume remove glustervol force --mode=script
-gluster volume remove ctdb force --mode=script
+gluster volume delete glustervol --mode=script
+gluster volume delete ctdb --mode=script
 service glusterfsd stop
 service glusterfs stop
 # Remove LVM setup
