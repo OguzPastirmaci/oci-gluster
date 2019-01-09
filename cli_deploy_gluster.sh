@@ -43,7 +43,7 @@ create_headnode()
     if [ "$cifs_multi_channel" = "yes" ]
     then
       echo -e "${GREEN}Creating secondary vnic for CIFS multi-channel support"
-      svnic=`oci compute instance attach-vnic --instance-id $masterID --subnet-id $S --nic-index 1 --vnic-display-name "gluster-server-$PRE-$i-svnic" --wait`
+      svnic=`oci compute instance attach-vnic --instance-id $masterID --subnet-id $S --nic-index 1 --assign-public-ip false --vnic-display-name "gluster-server-$PRE-$i-svnic" --wait`
     fi
     for k in `seq 1 $blk_num`; do
       echo -e "${GREEN}CREATING glusterfs-block-$PRE-$i-$k ${NC}"
