@@ -62,7 +62,7 @@ config_gluster()
 {
     echo CONFIG GLUSTER
     # Create Logical Volume for Gluster Brick
-    lvcreate -l 100%VG --stripes $blk_cnt --stripesize $lvm_stripe_size -n brick1 vg_gluster
+    lvcreate -y -l 100%VG --stripes $blk_cnt --stripesize $lvm_stripe_size -n brick1 vg_gluster
     lvdisplay
     
     # Create XFS filesystem with Inodes set at 512 and Directory block size at 8192
@@ -86,3 +86,7 @@ config_gluster()
     mkdir /bricks/brick1/brick
 
 }
+
+config_node
+create_pvolume
+config_gluster
