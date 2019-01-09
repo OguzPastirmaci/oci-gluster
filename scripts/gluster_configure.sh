@@ -112,5 +112,10 @@ config_gluster()
     fi
 }
 
-if [ $action = "create_volume" ]; then create_pvolume
-else config_node; fi
+# Setup node repos
+config_node
+
+# Configure volumes
+create_pvolume
+
+# end of script
