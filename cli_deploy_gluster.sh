@@ -80,7 +80,7 @@ configure_storage()
   ip_list=$(echo $priv_ip_list | cut -d ' ' -f-`expr $server_nodes - 1`)
   sleep 30
   echo $ip_list
-  ssh -i $PRE.key $USER@$IP "chmod +x scripts/*.sh; cd /home/$USER/scripts/; pwd; sudo -E bash -c '/home/$USER/scripts/gluster_cifs_configure.sh -v glustervol -m $subnet.11 -n "$ip_list" -b "/bricks/brick1" -u opc -p "password123"' -s "$cifs_multi_channel""
+  ssh -i $PRE.key $USER@$IP "chmod +x scripts/*.sh; cd /home/$USER/scripts/; pwd; sudo -E bash -c '/home/$USER/scripts/gluster_cifs_configure.sh -v glustervol -m $subnet.11 -n "$ip_list" -b "/bricks/brick1" -u opc -p "password123"-s "$cifs_multi_channel"'"
 }
 
 

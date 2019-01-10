@@ -25,7 +25,7 @@ then
 fi
 
 # Get Commandline Options
-while getopts ":v:m:n:b:u:p:" opt; do
+while getopts ":v:m:n:b:u:p:s:" opt; do
   case $opt in
   v)
     VOLNAME=$OPTARG
