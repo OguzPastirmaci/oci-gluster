@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #SET COMPARTMENT
-profile=LAB
-compartment_id=ocid1.compartment.oc1..aaaaaaaab65r3seb5h5f6r3q2e4gjr2do6f73y3rgmfvta3n6no6kkllovja
+profile=DEFAULT
+compartment_id=
 
 #IF USING AN EXISTING NETWORK SET
 vcn_id=
