@@ -1,4 +1,4 @@
-# oci-quickstart-gluster
+# oci-gluster
 These are Terraform modules that deploy [GlusterFS](https://www.gluster.org/) on [Oracle Cloud Infrastructure (OCI)](https://cloud.oracle.com/en_US/cloud-infrastructure).
 
 ## About
