@@ -32,7 +32,7 @@ variable "gluster_server" {
   type = "map"
   default = {
     shape      = "VM.Standard2.2"
-    node_count = 0
+    node_count = 3
     brick_count = 2
     brick_size = 50
     # Block volume elastic performance tier.  The number of volume performance units (VPUs) that will be applied to this volume per GB, representing the Block Volume service's elastic performance options. See https://docs.cloud.oracle.com/en-us/iaas/Content/Block/Concepts/blockvolumeelasticperformance.htm for more information.  Allowed values are 0, 10, and 20.  Recommended value is 10 for balanced performance and 20 to receive higher performance (IO throughput and IOPS) per GB.
@@ -47,7 +47,7 @@ variable "client_node" {
   type = "map"
   default = {
     shape      = "VM.Standard2.2"
-    node_count = 0
+    node_count = 1
     hostname_prefix = "g-compute-"
     }
 }
