@@ -181,6 +181,7 @@ variable "imagesCentOS" {
 locals {
   server_dual_nics = (length(regexall("^BM", var.gluster_server["shape"])) > 0 ? true : false)
   storage_subnet_domain_name=(local.server_dual_nics ? "${oci_core_subnet.private[0].dns_label}.${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com" : "${oci_core_subnet.private[0].dns_label}.${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com" )
-  filesystem_subnet_domain_name=(local.server_dual_nics ? "${oci_core_subnet.privateb[0].dns_label}.${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com" : "${oci_core_subnet.private[0].dns_label}.${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com" )
+  filesystem_subnet_domain_name=(local.server_dual_nics ? "${oci_core_subnet.privateb[0].dns_label}.${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com" : "${oci_core_subnet.privateb[0].dns_label}.${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com" )
   vcn_domain_name="${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com"
+  server_filesystem_vnic_hostname_prefix = "${var.gluster_server["hostname_prefix"]}fs-vnic-"
 }

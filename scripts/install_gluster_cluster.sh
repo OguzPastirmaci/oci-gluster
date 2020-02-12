@@ -257,7 +257,7 @@ gluster_probe_peers()
         host=`hostname -i`
         for i in `seq 2 $server_node_count`;
         do
-            gluster peer probe $server_hostname_prefix${i}.${filesystem_subnet_domain_name} --mode=script
+            gluster peer probe ${server_filesystem_vnic_hostname_prefix}${i}.${filesystem_subnet_domain_name} --mode=script
         done
         sleep 20
         gluster peer status
@@ -279,7 +279,7 @@ create_gluster_volumes()
         do
             for i in `seq 1 $server_node_count`;
             do
-                buffer="$buffer ${server_hostname_prefix}${i}:/bricks/${brick}/brick "
+                buffer="$buffer ${server_filesystem_vnic_hostname_prefix}${i}:/bricks/${brick}/brick "
             done
 
             count=$((count+1))

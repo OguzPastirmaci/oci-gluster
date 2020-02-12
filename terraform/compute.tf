@@ -34,6 +34,7 @@ resource "oci_core_instance" "gluster_server" {
         "storage_subnet_domain_name=\"${local.storage_subnet_domain_name}\"",
         "filesystem_subnet_domain_name=\"${local.filesystem_subnet_domain_name}\"",
         "vcn_domain_name=\"${local.vcn_domain_name}\"",
+        "server_filesystem_vnic_hostname_prefix=\"${local.server_filesystem_vnic_hostname_prefix}\"",
         "server_dual_nics=\"${local.server_dual_nics}\"",
         file("${var.scripts_directory}/firewall.sh"),
         file("${var.scripts_directory}/install_gluster_cluster.sh")
@@ -56,7 +57,7 @@ resource "oci_core_instance" "client_node" {
   display_name        = "${var.client_node["hostname_prefix"]}${format("%01d", count.index+1)}"
   hostname_label      = "${var.client_node["hostname_prefix"]}${format("%01d", count.index+1)}"
   shape               = "${var.client_node["shape"]}"
-  subnet_id           = (local.server_dual_nics ? oci_core_subnet.privateb.*.id[0] : oci_core_subnet.private.*.id[0])
+  subnet_id           = (local.server_dual_nics ? oci_core_subnet.privateb.*.id[0] : oci_core_subnet.privateb.*.id[0])
 # oci_core_subnet.private.*.id[0]
 
   source_details {
@@ -79,6 +80,7 @@ resource "oci_core_instance" "client_node" {
         "storage_subnet_domain_name=\"${local.storage_subnet_domain_name}\"",
         "filesystem_subnet_domain_name=\"${local.filesystem_subnet_domain_name}\"",
         "vcn_domain_name=\"${local.vcn_domain_name}\"",
+        "server_filesystem_vnic_hostname_prefix=\"${local.server_filesystem_vnic_hostname_prefix}\"",
         file("${var.scripts_directory}/firewall.sh"),
         file("${var.scripts_directory}/install_gluster_client.sh")
       )))}"
