@@ -143,3 +143,15 @@ resource "oci_core_subnet" "private" {
 }
 
 
+resource "oci_core_subnet" "privateb" {
+  count                      = "1"
+  cidr_block                 = cidrsubnet(var.vpc_cidr, 8, count.index + 6)
+  display_name               = "privateb_${count.index}"
+  compartment_id             = var.compartment_ocid
+  vcn_id                     = oci_core_virtual_network.gluster.id
+  route_table_id             = oci_core_route_table.private_route_table.id
+  security_list_ids          = [oci_core_security_list.private_security_list.id]
+  dhcp_options_id            = oci_core_virtual_network.gluster.default_dhcp_options_id
+  prohibit_public_ip_on_vnic = "true"
+  dns_label                  = "privateb${count.index}"
+}

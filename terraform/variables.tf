@@ -31,12 +31,12 @@ variable "bastion" {
 variable "gluster_server" {
   type = "map"
   default = {
-    shape      = "VM.Standard2.2"
+    shape      = "VM.Standard2.24"
     node_count = 3
-    brick_count = 2
+    brick_count = 8
     brick_size = 50
     # Block volume elastic performance tier.  The number of volume performance units (VPUs) that will be applied to this volume per GB, representing the Block Volume service's elastic performance options. See https://docs.cloud.oracle.com/en-us/iaas/Content/Block/Concepts/blockvolumeelasticperformance.htm for more information.  Allowed values are 0, 10, and 20.  Recommended value is 10 for balanced performance and 20 to receive higher performance (IO throughput and IOPS) per GB.
-    vpus_per_gb = "10"
+    vpus_per_gb = "20"
     hostname_prefix = "g-server-"
     }
 }
@@ -46,8 +46,8 @@ variable "gluster_server" {
 variable "client_node" {
   type = "map"
   default = {
-    shape      = "VM.Standard2.2"
-    node_count = 1
+    shape      = "VM.Standard2.24"
+    node_count = 3
     hostname_prefix = "g-compute-"
     }
 }
@@ -62,8 +62,9 @@ variable "gluster" {
     version      = "5.9"
     # valid values are "Distributed", "Dispersed" , "DistributedDispersed"
     # Future release may support:  "DistributedReplicated", "Replicated".  "Dispersed" volumes types are preferred over Replicated versions.
-    volume_types = "DistributedDispersed"
-    block_size = "2048k"
+    volume_types = "Distributed"
+    # Has to be in KiloBytes only. Use capital K, not lowercase k. 
+    block_size = "256K"
     mount_point = "/glusterfs"
     # To be supported in future
     high_availability = false
@@ -177,3 +178,9 @@ variable "imagesCentOS" {
   }
 }
 
+locals {
+  server_dual_nics = (length(regexall("^BM", var.gluster_server["shape"])) > 0 ? true : false)
+  storage_subnet_domain_name=(local.server_dual_nics ? "${oci_core_subnet.private[0].dns_label}.${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com" : "${oci_core_subnet.private[0].dns_label}.${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com" )
+  filesystem_subnet_domain_name=(local.server_dual_nics ? "${oci_core_subnet.privateb[0].dns_label}.${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com" : "${oci_core_subnet.private[0].dns_label}.${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com" )
+  vcn_domain_name="${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com"
+}

@@ -2,8 +2,8 @@
 
 resource "oci_core_instance" "gluster_server" {
   count               = var.gluster_server["node_count"]
-  availability_domain = data.oci_identity_availability_domains.ADs.availability_domains[(count.index%3)]["name"]
-  #availability_domain = data.oci_identity_availability_domains.ADs.availability_domains[var.AD - 1]["name"]
+  #availability_domain = data.oci_identity_availability_domains.ADs.availability_domains[(count.index%3)]["name"]
+  availability_domain = data.oci_identity_availability_domains.ADs.availability_domains[var.AD - 1]["name"]
 
   fault_domain        = "FAULT-DOMAIN-${(count.index%3)+1}"
   compartment_id      = "${var.compartment_ocid}"
@@ -31,6 +31,10 @@ resource "oci_core_instance" "gluster_server" {
         "server_hostname_prefix=\"${var.gluster_server["hostname_prefix"]}\"",
         "volume_types=\"${var.gluster["volume_types"]}\"",
         "block_size=\"${var.gluster["block_size"]}\"",
+        "storage_subnet_domain_name=\"${local.storage_subnet_domain_name}\"",
+        "filesystem_subnet_domain_name=\"${local.filesystem_subnet_domain_name}\"",
+        "vcn_domain_name=\"${local.vcn_domain_name}\"",
+        "server_dual_nics=\"${local.server_dual_nics}\"",
         file("${var.scripts_directory}/firewall.sh"),
         file("${var.scripts_directory}/install_gluster_cluster.sh")
       )))}"
@@ -45,13 +49,15 @@ resource "oci_core_instance" "gluster_server" {
 
 resource "oci_core_instance" "client_node" {
   count               = "${var.client_node["node_count"]}"
-  availability_domain = data.oci_identity_availability_domains.ADs.availability_domains[(count.index%3)]["name"]
-  #availability_domain = data.oci_identity_availability_domains.ADs.availability_domains[var.AD - 1]["name"]  fault_domain        = "FAULT-DOMAIN-${(count.index%3)+1}"
+  #availability_domain = data.oci_identity_availability_domains.ADs.availability_domains[(count.index%3)]["name"]
+  availability_domain = data.oci_identity_availability_domains.ADs.availability_domains[var.AD - 1]["name"]  
+  fault_domain        = "FAULT-DOMAIN-${(count.index%3)+1}"
   compartment_id      = "${var.compartment_ocid}"
   display_name        = "${var.client_node["hostname_prefix"]}${format("%01d", count.index+1)}"
   hostname_label      = "${var.client_node["hostname_prefix"]}${format("%01d", count.index+1)}"
   shape               = "${var.client_node["shape"]}"
-  subnet_id           = oci_core_subnet.private.*.id[0]
+  subnet_id           = (local.server_dual_nics ? oci_core_subnet.privateb.*.id[0] : oci_core_subnet.private.*.id[0])
+# oci_core_subnet.private.*.id[0]
 
   source_details {
     source_type = "image"
@@ -70,6 +76,9 @@ resource "oci_core_instance" "client_node" {
         "gluster_yum_release=\"${var.gluster_ol_repo_mapping[var.gluster["version"]]}\"",
         "mount_point=\"${var.gluster["mount_point"]}\"",
         "server_hostname_prefix=\"${var.gluster_server["hostname_prefix"]}\"",
+        "storage_subnet_domain_name=\"${local.storage_subnet_domain_name}\"",
+        "filesystem_subnet_domain_name=\"${local.filesystem_subnet_domain_name}\"",
+        "vcn_domain_name=\"${local.vcn_domain_name}\"",
         file("${var.scripts_directory}/firewall.sh"),
         file("${var.scripts_directory}/install_gluster_client.sh")
       )))}"
