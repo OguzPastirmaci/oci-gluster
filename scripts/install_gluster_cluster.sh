@@ -6,6 +6,11 @@ echo "storage_subnet_domain_name=\"${storage_subnet_domain_name}\"" >> /tmp/env_
 echo "filesystem_subnet_domain_name=\"${filesystem_subnet_domain_name}\"" >> /tmp/env_variables.sh
 echo "vcn_domain_name=\"${vcn_domain_name}\"" >> /tmp/env_variables.sh
 
+echo "disk_size=\"${disk_size}\""  >> /tmp/env_variables.sh
+echo "disk_count=\"${disk_count}\""  >> /tmp/env_variables.sh
+echo "raid_enabled=\"${raid_enabled}\""  >> /tmp/env_variables.sh
+echo "num_of_disks_in_brick=\"${num_of_disks_in_brick}\""  >> /tmp/env_variables.sh
+
 
 
 #server_node_count=$2
@@ -46,10 +51,8 @@ function tuned_config() {
 
 function configure_nics() {
 
-if [ "$server_dual_nics" = "false" ]; then
-
-
-#cd /etc/sysconfig/network-scripts/
+# We use 2 VNICs - irrespective of BM/VM. One for storage traffic, another for server/client traffic
+# if [ "$server_dual_nics" = "false" ]; then
 
    # Wait till 2nd NIC is configured
    privateIp=`curl -s http://169.254.169.254/opc/v1/vnics/ | jq '.[1].privateIp ' | sed 's/"//g' ` ;
@@ -67,11 +70,11 @@ if [ "$server_dual_nics" = "false" ]; then
    sleep 30s
    curl -O https://docs.cloud.oracle.com/en-us/iaas/Content/Resources/Assets/secondary_vnic_all_configure.sh
    chmod +x secondary_vnic_all_configure.sh
-   /secondary_vnic_all_configure.sh -c
+   ./secondary_vnic_all_configure.sh -c
    sleep 30s
 # Sometimes, "ip addr" , it returned empty. hence added another command.
    interface=`ip addr | grep -B2 $privateIp | grep "BROADCAST" | gawk -F ":" ' { print $2 } ' | sed -e 's/^[ \t]*//'`
-   interface=`/secondary_vnic_all_configure.sh  | grep $vnicId |  gawk -F " " ' { print $8 } ' | sed -e 's/^[ \t]*//'`
+   interface=`./secondary_vnic_all_configure.sh  | grep $vnicId |  gawk -F " " ' { print $8 } ' | sed -e 's/^[ \t]*//'`
 
    echo "$subnetCidrBlock via $privateIp dev $interface" >  /etc/sysconfig/network-scripts/route-$interface
    echo "Permanently configure 2nd VNIC...$interface"
@@ -95,9 +98,9 @@ NM_CONTROLLED=no
     THIS_HOST=${THIS_FQDN%%.*}
     SecondVNICDomainName=${THIS_FQDN#*.*}
 
-  else
-    echo "todo"
-  fi
+#  else
+#    echo "todo"
+#  fi
 }
 
 function tune_nics() {
@@ -158,7 +161,7 @@ config_node()
 make_filesystem()
 {
     # Create Logical Volume for Gluster Brick
-    lvcreate -l 100%VG -n $brick_name $vg_gluster_name
+    lvcreate -l 100%VG --stripes $lvm_stripes_cnt --stripesize $lvm_stripe_size -n $brick_name $vg_gluster_name
     lvdisplay
 
     # Create XFS filesystem with Inodes set at 512 and Directory block size at 8192
@@ -185,65 +188,54 @@ create_bricks()
       echo "Waiting for block-attach via Terraform to  complete ..."
     done
 
-    # Gather list of block devices for brick config
-    blk_lst=$(lsblk -d --noheadings | grep -v sda | awk '{ print $1 }' | sort)
-    blk_cnt=$(lsblk -d --noheadings | grep -v sda | wc -l)
 
-    chunk_size=${block_size}; chunk_size_tmp=`echo $chunk_size | gawk -F"K" ' { print $1 }'` ; echo $chunk_size_tmp;
+chunk_size=${block_size}; chunk_size_tmp=`echo $chunk_size | gawk -F"K" ' { print $1 }'` ; echo $chunk_size_tmp;
 
-    disk_list=""
+# Gather list of block devices for brick config
+blk_lst=$(lsblk -d --noheadings | grep -v sda | awk '{ print $1 }' | sort)
+blk_cnt=$(lsblk -d --noheadings | grep -v sda | wc -l)
+
+
+if [ $blk_cnt -ge $num_of_disks_in_brick ]; then
+
+disk_per_brick_counter=0
+brick_counter=1
+count=1
+# Configure physical volumes and volume group
     for disk in $blk_lst
     do
-        disk_list="$disk_list /dev/$disk"
-    done
-    echo "disk_list=$disk_list"
-    raid_device_count=$blk_cnt
-    raid_device_name="md0"
-    mdadm --create md0 --level=0 --chunk=$chunk_size --raid-devices=$blk_cnt $disk_list
+        dataalignment=$((num_of_disks_in_brick*chunk_size_tmp)); echo $dataalignment;
+        pvcreate --dataalignment $dataalignment  /dev/$disk
+        physicalextentsize=$chunk_size;  echo $physicalextentsize
+        vgcreate  --physicalextentsize $physicalextentsize vg_gluster_${brick_counter} /dev/$disk
+        vgextend vg_gluster_${brick_counter} /dev/$disk
 
-    count=1
-    # Configure physical volumes and volume group
-    # Gather list of RAID devices for brick config
-    raid_lst=$(ls /dev/md/md* | sort)
-    raid_cnt=$(ls /dev/md/md* | wc -l)
-    echo $raid_lst ; echo $raid_cnt
-    raid_prefix="/dev/md/"
-    for pvol in $raid_lst
-    do
-
-        if [ "$volume_types" = "Dispersed" ]; then
-            pvcreate $pvol
-            vg_gluster_name="vg_gluster"
-            vgcreate $vg_gluster_name $pvol
-            vgextend $vg_gluster_name $pvol
-            vgdisplay $vg_gluster_name
-            #brick_name="brick1"
-            #brick_count=$raid_cnt
-        else
-            # Same logic for DistributedDispersed & Distributed
-            dataalignment=$((raid_device_count*chunk_size_tmp));
-            echo $dataalignment;
-            pvcreate --dataalignment $dataalignment $pvol
-            #pvcreate ${raid_prefix}$pvol
-
-            vg_gluster_name="vg_gluster_$count" ; echo $vg_gluster_name
-            physicalextentsize=$chunk_size;  echo $physicalextentsize
-            vgcreate --physicalextentsize $physicalextentsize $vg_gluster_name $pvol
-            #          vgcreate vg_gluster_$count ${raid_prefix}$pvol
-            #            vgdisplay vg_gluster_$count
-
-            brick_name="brick${count}"
-            lvm_disk_count=$((raid_device_count*1))
-            make_filesystem
+        if [ $disk_per_brick_counter -lt $num_of_disks_in_brick ]; then
+            disk_per_brick_counter=$((disk_per_brick_counter+1))
         fi
+
+# Logic for last set of disks to call make_filesystem
+        if [ $blk_cnt -eq $count -o $disk_per_brick_counter -eq $num_of_disks_in_brick ]; then
+            vgdisplay
+            brick_name="brick${brick_counter}"
+            lvm_disk_count=$((num_of_disks_in_brick*1))
+            vg_gluster_name="vg_gluster_${brick_counter}"
+            lvm_stripes_cnt=$num_of_disks_in_brick
+            make_filesystem
+            brick_counter=$((brick_counter+1))
+            disk_per_brick_counter=0
+        fi
+
+
+
         count=$((count+1))
     done
 
-    if [ "$volume_types" = "Dispersed" ]; then
-        lvm_disk_count=$((raid_device_count*raid_cnt))
-        brick_name="brick1"
-        make_filesystem
-    fi
+else
+    echo "Not enough disks attached"
+    exit 1;
+fi
+
 }
 
 
@@ -287,8 +279,13 @@ create_gluster_volumes()
 
         if [ "$volume_types" = "Distributed" ]; then
             command_parameters=" transport tcp $buffer  force --mode=script"
-        else
+        elif [ "$volume_types" = "DistributedReplicated" -o  "$volume_types" = "Replicated" ]; then
+            command_parameters=" replica $replica transport tcp $buffer  force --mode=script"
+        elif [ "$volume_types" = "DistributedDispersed" -o  "$volume_types" = "Dispersed" ]; then
             command_parameters=" disperse $server_node_count redundancy 1 transport tcp $buffer  force --mode=script"
+        else
+            echo "Invalid volume type input, exiting...."
+            exit 1;
         fi
 
     gluster volume create glustervol $command_parameters

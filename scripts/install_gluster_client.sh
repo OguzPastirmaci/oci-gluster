@@ -57,8 +57,9 @@ function mount_glusterfs() {
     echo "sleep - 100s"
     sleep 100s
     sudo mkdir -p ${mount_point}
-    sudo mount -t glusterfs ${server_hostname_prefix}1.${filesystem_subnet_domain_name}:/glustervol ${mount_point}
+    sudo mount -t glusterfs -o defaults,_netdev,direct-io-mode=disable ${server_filesystem_vnic_hostname_prefix}1.${filesystem_subnet_domain_name}:/glustervol ${mount_point}
 }
+
 
 # Enable latest Oracle Linux Gluster release
 yum-config-manager --add-repo $gluster_yum_release
@@ -72,7 +73,9 @@ while [ $? -ne 0 ]; do
     mount_glusterfs
 done
 
-echo "${server_hostname_prefix}1.${filesystem_subnet_domain_name}:/glustervol ${mount_point} glusterfs defaults,_netdev,direct-io-mode=disable 0 0" >> /etc/fstab
+touch /tmp/mount.complete
+
+echo "${server_filesystem_vnic_hostname_prefix}1.${filesystem_subnet_domain_name}:/glustervol ${mount_point} glusterfs defaults,_netdev,direct-io-mode=disable 0 0" >> /etc/fstab
 
 
 

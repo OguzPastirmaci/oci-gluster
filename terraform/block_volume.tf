@@ -5,20 +5,20 @@ The Universal Permissive License (UPL), Version 1.0
 */
 
 resource "oci_core_volume" "gluster_blockvolume" {
-  count = var.gluster_server["node_count"] * var.gluster_server["brick_count"]
+  count = var.gluster_server["node_count"] * var.gluster_server["disk_count"]
 
-availability_domain = data.oci_identity_availability_domains.ADs.availability_domains[((count.index % var.gluster_server["node_count"])%3)]["name"]
-#availability_domain = data.oci_identity_availability_domains.ADs.availability_domains[var.AD - 1]["name"]
+  #availability_domain = data.oci_identity_availability_domains.ADs.availability_domains[((count.index % var.gluster_server["node_count"])%3)]["name"]
+  availability_domain = data.oci_identity_availability_domains.ADs.availability_domains[var.AD - 1]["name"]
 
   compartment_id      = var.compartment_ocid
-  display_name        = "server${count.index % var.gluster_server["node_count"] + 1}-brick${count.index % var.gluster_server["brick_count"] + 1}"
-  size_in_gbs         = "${var.gluster_server["brick_size"]}"
+  display_name        = "server${count.index % var.gluster_server["node_count"] + 1}-brick${count.index % var.gluster_server["disk_count"] + 1}"
+  size_in_gbs         = "${var.gluster_server["disk_size"]}"
   vpus_per_gb         = var.gluster_server["vpus_per_gb"]
 }
 
 resource "oci_core_volume_attachment" "blockvolume_attach" {
   attachment_type = "iscsi"
-  count = var.gluster_server["node_count"] * var.gluster_server["brick_count"]
+  count = var.gluster_server["node_count"] * var.gluster_server["disk_count"]
   instance_id = element(
     oci_core_instance.gluster_server.*.id,
     count.index % var.gluster_server["node_count"],
