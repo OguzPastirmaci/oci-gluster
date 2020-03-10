@@ -1,6 +1,6 @@
 
 resource "oci_core_vnic_attachment" "server_secondary_vnic_attachment" {
-  count = var.gluster_server["node_count"]
+  count = var.gluster_server_node_count
 
   #Required
   create_vnic_details {

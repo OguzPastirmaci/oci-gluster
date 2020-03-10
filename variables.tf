@@ -15,77 +15,59 @@ variable "images" {
   }
 }
 
-# One bastion node is enough
-variable "bastion" {
-  type = "map"
-  default = {
-    shape      = "VM.Standard2.2"
-    node_count = 1
-    hostname_prefix = "bastion-"
-  }
-}
 
-# Gluster Server nodes variables
-# Brick Disk Configuration. size is in GB.
-# if shape is DenseIO,  it will create a seperate FS just using local NVMe.
-variable "gluster_server" {
-  type = "map"
-  default = {
-    shape      = "VM.Standard2.8"
-    node_count = 3
-    disk_count = 4
-    disk_size = 50
-    # Make sure disk_count is a multiplier of num_of_disks_in_brick.  i.e: disk_count/num_of_disks_in_brick = an Integer, eg: disk_count=8,num_of_disks_in_brick=4 (8/4=2).
-    num_of_disks_in_brick = 1
-    # Block volume elastic performance tier.  The number of volume performance units (VPUs) that will be applied to this volume per GB, representing the Block Volume service's elastic performance options. See https://docs.cloud.oracle.com/en-us/iaas/Content/Block/Concepts/blockvolumeelasticperformance.htm for more information.  Allowed values are 0, 10, and 20.  Recommended value is 10 for balanced performance and 20 to receive higher performance (IO throughput and IOPS) per GB.
-    vpus_per_gb = "10"
-    hostname_prefix = "g-server-"
-    }
-}
+variable bastion_shape { default = "VM.Standard2.2" }
+variable bastion_node_count { default = 1 }
+variable bastion_hostname_prefix { default = "bastion-" }
+
+variable gluster_server_shape { default = "VM.Standard2.8" }
+variable gluster_server_node_count { default = 2 }
+variable gluster_server_disk_count { default = 1 }
+variable gluster_server_disk_size { default = 50 }
+# Make sure disk_count is a multiplier of num_of_disks_in_brick.  i.e: disk_count/num_of_disks_in_brick = an Integer, eg: disk_count=8,num_of_disks_in_brick=4 (8/4=2).
+variable gluster_server_num_of_disks_in_brick { default = 1 }
+# Block volume elastic performance tier.  The number of volume performance units (VPUs) that will be applied to this volume per GB, representing the Block Volume service's elastic performance options. See https://docs.cloud.oracle.com/en-us/iaas/Content/Block/Concepts/blockvolumeelasticperformance.htm for more information.  Allowed values are 0, 10, and 20.  Recommended value is 10 for balanced performance and 20 to receive higher performance (IO throughput and IOPS) per GB.
+variable gluster_server_disk_vpus_per_gb { default = "10" }
+variable gluster_server_hostname_prefix { default = "g-server-" }
+
 
 
 # Client nodes variables
-variable "client_node" {
-  type = "map"
-  default = {
-    shape      = "VM.Standard2.8"
-    node_count = 1
-    hostname_prefix = "g-compute-"
-    }
-}
+variable client_node_shape { default = "VM.Standard2.2" }
+variable client_node_count { default = 1 }
+variable client_node_hostname_prefix { default = "g-compute-" }
+
+
+
 
 /*
   Gluster FS related variables
 */
-variable "gluster" {
-  type = "map"
-  default = {
-    # Valid values "5.9" , "3.12" on Oracle Linux Operating System
-    version      = "5.9"
-    # valid values are "Distributed", "Dispersed" , "DistributedDispersed"
-    # Future release may support:  "DistributedReplicated", "Replicated".  "Dispersed" volumes types are preferred over Replicated versions.
-    volume_types = "DistributedDispersed"
-    # replica field used only when VolumeTypes is "Replicated" or "DistributedReplicated". Otherwise assume no replication of data (replica=1 means no replication)
-    replica = 1
-    # Has to be in KiloBytes only. Use capital K, not lowercase k. 
-    block_size = "256K"
-    mount_point = "/glusterfs"
-    # To be supported in future
-    high_availability = false
-  }
-}
+# Valid values "5.9" , "3.12" on Oracle Linux Operating System
+variable gluster_version { default = "5.9" }
+# valid values are "Distributed", "Dispersed" , "DistributedDispersed"
+# Future release may support:  "DistributedReplicated", "Replicated".  "Dispersed" volumes types are preferred over Replicated versions.
+variable gluster_volume_types { default = "Distributed" }
+# replica field used only when VolumeTypes is "Replicated" or "DistributedReplicated". Otherwise assume no replication of data (replica=1 means no replication)
+variable gluster_replica { default = 1 }
+# Has to be in kilobytes only. Only numerical value.
+variable gluster_block_size { default = "256K" }
+variable gluster_mount_point { default = "/glusterfs" }
+# To be supported in future
+variable gluster_high_availability { default = false }
 
 
-# This is currently used for the deployment.  
+
+/*
 variable "AD" {
   default = "1"
 }
-
+*/
 ##################################################
 ## Variables which should not be changed by user
 ##################################################
 
-variable "scripts_directory" { default = "../scripts" }
+variable "scripts_directory" { default = "scripts" }
 
 variable "gluster_ol_repo_mapping" {
   type = map(string)
@@ -136,16 +118,11 @@ variable "volume_attach_device_mapping" {
 
 ###############
 
-variable "tenancy_ocid" {}
-variable "user_ocid" {}
-variable "fingerprint" {}
-variable "private_key_path" {}
 variable "region" {}
-
+variable "tenancy_ocid" {}
 variable "compartment_ocid" {}
 variable "ssh_public_key" {}
-variable "ssh_private_key" {}
-variable "ssh_private_key_path" {}
+
 
 /*
   For instances created using Oracle Linux and CentOS images, the user name opc is created automatically.
@@ -183,9 +160,46 @@ variable "imagesCentOS" {
 }
 
 locals {
-  server_dual_nics = (length(regexall("^BM", var.gluster_server["shape"])) > 0 ? true : false)
+  server_dual_nics = (length(regexall("^BM", var.gluster_server_shape)) > 0 ? true : false)
   storage_subnet_domain_name=(local.server_dual_nics ? "${oci_core_subnet.private[0].dns_label}.${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com" : "${oci_core_subnet.private[0].dns_label}.${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com" )
   filesystem_subnet_domain_name=(local.server_dual_nics ? "${oci_core_subnet.privateb[0].dns_label}.${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com" : "${oci_core_subnet.privateb[0].dns_label}.${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com" )
   vcn_domain_name="${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com"
-  server_filesystem_vnic_hostname_prefix = "${var.gluster_server["hostname_prefix"]}fs-vnic-"
+  server_filesystem_vnic_hostname_prefix = "${var.gluster_server_hostname_prefix}fs-vnic-"
+
+
+  # If ad_number is non-negative use it for AD lookup, else use ad_name.
+  # Allows for use of ad_number in TF deploys, and ad_name in ORM.
+  # Use of max() prevents out of index lookup call.
+  ad = "${var.ad_number >= 0 ? lookup(data.oci_identity_availability_domains.availability_domains.availability_domains[max(0,var.ad_number)],"name") : var.ad_name}"
+
+}
+
+
+
+# Not used for normal terraform apply, added for ORM deployments.
+variable "ad_name" {
+  default = ""
+}
+
+# This is currently used for the deployment.
+variable "ad_number" {
+  default = "0"
+}
+
+#-------------------------------------------------------------------------------------------------------------
+# Marketplace variables
+# ------------------------------------------------------------------------------------------------------------
+
+variable "mp_listing_id" {
+  default = "ocid1.appcataloglisting.oc1..aaaaaaaavxdzoflapwjvlapap6w7at2gnd66zah6ce2cxdhmftft5hz7itxa"
+}
+variable "mp_listing_resource_id" {
+  default = "ocid1.image.oc1..aaaaaaaajpe7s6yzdfrhxhn5cuxtssuvoj22bired5qhydm3hcolgyrciz7q"
+}
+variable "mp_listing_resource_version" {
+ default = "1.0-030520202328"
+}
+
+variable "use_marketplace_image" {
+  default = false
 }
