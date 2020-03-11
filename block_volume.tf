@@ -62,11 +62,11 @@ resource "null_resource" "notify_server_nodes_block_attach_complete" {
         agent               = false
         timeout             = "30m"
         host                = element(oci_core_instance.gluster_server.*.private_ip, count.index)
-        user                = "${var.ssh_user}"
+        user                = var.ssh_user
         private_key         = tls_private_key.public_private_key_pair.private_key_pem
         bastion_host        = "${oci_core_instance.bastion.*.public_ip[0]}"
         bastion_port        = "22"
-        bastion_user        = "${var.ssh_user}"
+        bastion_user        = var.ssh_user
         bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem
     }
     inline = [

@@ -61,9 +61,19 @@ function mount_glusterfs() {
 }
 
 
-# Enable latest Oracle Linux Gluster release
-yum-config-manager --add-repo $gluster_yum_release
-sudo yum install glusterfs glusterfs-fuse attr -y
+
+
+
+
+cat /etc/os-release | grep "^NAME=" | grep "CentOS"
+if [ $? -eq 0 ]; then
+  yum install glusterfs glusterfs-fuse attr -y --nogpgcheck
+else
+  # Enable latest Oracle Linux Gluster release
+  yum-config-manager --add-repo $gluster_yum_release
+  sudo yum install glusterfs glusterfs-fuse attr -y
+fi
+
 tuned_config
 tune_nics
 tune_sysctl

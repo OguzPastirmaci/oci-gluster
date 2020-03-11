@@ -50,8 +50,8 @@ variable gluster_version { default = "5.9" }
 variable gluster_volume_types { default = "Distributed" }
 # replica field used only when VolumeTypes is "Replicated" or "DistributedReplicated". Otherwise assume no replication of data (replica=1 means no replication)
 variable gluster_replica { default = 1 }
-# Has to be in kilobytes only. Only numerical value.
-variable gluster_block_size { default = "256K" }
+# Has to be in Kilobytes only. Mention only numerical value, example 256, not 256K
+variable gluster_block_size { default = "256" }
 variable gluster_mount_point { default = "/glusterfs" }
 # To be supported in future
 variable gluster_high_availability { default = false }
@@ -201,5 +201,5 @@ variable "mp_listing_resource_version" {
 }
 
 variable "use_marketplace_image" {
-  default = false
+  default = true
 }

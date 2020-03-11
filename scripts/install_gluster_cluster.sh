@@ -19,10 +19,9 @@ echo "server_node_count = $server_node_count"
 echo "server_hostname_prefix = $server_hostname_prefix"
 
 #lvm_stripe_size="1024k"
-lvm_stripe_size=${block_size}
-
-#gluster_yum_release="http://yum.oracle.com/repo/OracleLinux/OL7/gluster312/x86_64"
-#gluster_yum_release="http://yum.oracle.com/repo/OracleLinux/OL7/gluster5/x86_64"
+# block_size is expected be to numerical only, but still check and remove k,K,kb,KB them, if they exist. 
+lvm_stripe_size=`echo $block_size | gawk -F"k|K|KB|kb" ' { print $1 }'` ;
+echo $lvm_stripe_size;
 
 # list_length(): Return the length of the list
 function list_length() {
@@ -147,13 +146,21 @@ config_node()
     systemctl stop firewalld
     systemctl disable firewalld
 
-    # Disable Selinux TODO: Enable Selinux
+    # Disable SELinux
+    cp /etc/selinux/config /etc/selinux/config.backup
+    sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
     setenforce 0
 
-    # Enable latest Oracle Linux Gluster release
-    yum-config-manager --add-repo $gluster_yum_release
-    yum install -y glusterfs-server samba git nvme-cli
-
+    cat /etc/os-release | grep "^NAME=" | grep "CentOS"
+    if [ $? -eq 0 ]; then
+      yum install -y centos-release-gluster --nogpgcheck
+      yum install glusterfs-server -y
+      yum install -y samba git nvme-cli
+    else
+      # Enable latest Oracle Linux Gluster release
+      yum-config-manager --add-repo $gluster_yum_release
+      yum install -y glusterfs-server samba git nvme-cli
+    fi
     touch /var/log/CONFIG_COMPLETE
 }
 
@@ -161,12 +168,17 @@ config_node()
 make_filesystem()
 {
     # Create Logical Volume for Gluster Brick
-    lvcreate -l 100%VG --stripes $lvm_stripes_cnt --stripesize $lvm_stripe_size -n $brick_name $vg_gluster_name
+    lvcreate -l 100%VG --stripes $lvm_stripes_cnt --stripesize "${block_size}K" -n $brick_name $vg_gluster_name
     lvdisplay
 
     # Create XFS filesystem with Inodes set at 512 and Directory block size at 8192
     # and set the su and sw for optimal stripe performance
-    mkfs.xfs -f -i size=512 -n size=8192 -d su=${lvm_stripe_size},sw=${lvm_disk_count} /dev/${vg_gluster_name}/${brick_name}
+    # lvm_stripe_size is assumed to be in KB, hence multiply by 1024 to convert to bytes.
+    # su must be a multiple of the sector size (4096)
+    # sw must be equal to # of disk within RAID or LVM.
+    su=$((block_size*1024)) ;  echo $su
+    sw=$((lvm_stripes_cnt)) ; echo $sw
+    mkfs.xfs -f -i size=512 -n size=8192 -d su=${su},sw=${sw} /dev/${vg_gluster_name}/${brick_name}
     mkdir -p /bricks/${brick_name}
     mount -t xfs -o noatime,inode64,nobarrier /dev/${vg_gluster_name}/${brick_name} /bricks/${brick_name}
     echo "/dev/${vg_gluster_name}/${brick_name}  /bricks/${brick_name}    xfs     noatime,inode64,nobarrier  1 2" >> /etc/fstab
@@ -189,7 +201,7 @@ create_bricks()
     done
 
 
-chunk_size=${block_size}; chunk_size_tmp=`echo $chunk_size | gawk -F"K" ' { print $1 }'` ; echo $chunk_size_tmp;
+#chunk_size=${block_size}; chunk_size_tmp=`echo $chunk_size | gawk -F"K" ' { print $1 }'` ; echo $chunk_size_tmp;
 
 # Gather list of block devices for brick config
 blk_lst=$(lsblk -d --noheadings | grep -v sda | awk '{ print $1 }' | sort)
@@ -204,9 +216,9 @@ count=1
 # Configure physical volumes and volume group
     for disk in $blk_lst
     do
-        dataalignment=$((num_of_disks_in_brick*chunk_size_tmp)); echo $dataalignment;
+        dataalignment=$((num_of_disks_in_brick*block_size)); echo $dataalignment;
         pvcreate --dataalignment $dataalignment  /dev/$disk
-        physicalextentsize=$chunk_size;  echo $physicalextentsize
+        physicalextentsize="${block_size}K";  echo $physicalextentsize
         vgcreate  --physicalextentsize $physicalextentsize vg_gluster_${brick_counter} /dev/$disk
         vgextend vg_gluster_${brick_counter} /dev/$disk
 
@@ -225,8 +237,6 @@ count=1
             brick_counter=$((brick_counter+1))
             disk_per_brick_counter=0
         fi
-
-
 
         count=$((count+1))
     done
@@ -290,6 +300,7 @@ create_gluster_volumes()
 
     gluster volume create glustervol $command_parameters
     sleep 20
+    gluster volume set glustervol ctime off
     gluster volume start glustervol force --mode=script
     sleep 20
     gluster volume status --mode=script
