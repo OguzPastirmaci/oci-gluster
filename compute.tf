@@ -19,7 +19,6 @@ resource "oci_core_instance" "gluster_server" {
   source_details {
     source_type = "image"
     source_id = (var.use_marketplace_image ? var.mp_listing_resource_id : var.images[var.region])
-# "${var.images[var.region]}"
   }
 
   launch_options {
@@ -40,11 +39,10 @@ resource "oci_core_instance" "gluster_server" {
         "gluster_yum_release=\"${var.gluster_ol_repo_mapping[var.gluster_version]}\"",
         "server_node_count=\"${var.gluster_server_node_count}\"",
         "server_hostname_prefix=\"${var.gluster_server_hostname_prefix}\"",
-"disk_size=\"${var.gluster_server_disk_size}\"",
-"disk_count=\"${var.gluster_server_disk_count}\"",
-#"raid_enabled=\"${var.gluster_server_raid_enabled}\"",
-"num_of_disks_in_brick=\"${var.gluster_server_num_of_disks_in_brick}\"",
-"replica=\"${var.gluster_replica}\"",
+        "disk_size=\"${var.gluster_server_disk_size}\"",
+        "disk_count=\"${var.gluster_server_disk_count}\"",
+        "num_of_disks_in_brick=\"${var.gluster_server_num_of_disks_in_brick}\"",
+        "replica=\"${var.gluster_replica}\"",
         "volume_types=\"${var.gluster_volume_types}\"",
         "block_size=\"${var.gluster_block_size}\"",
         "storage_subnet_domain_name=\"${local.storage_subnet_domain_name}\"",
@@ -75,12 +73,10 @@ resource "oci_core_instance" "client_node" {
   hostname_label      = "${var.client_node_hostname_prefix}${format("%01d", count.index+1)}"
   shape               = var.client_node_shape
   subnet_id           = (local.server_dual_nics ? oci_core_subnet.privateb.*.id[0] : oci_core_subnet.privateb.*.id[0])
-# oci_core_subnet.private.*.id[0]
 
   source_details {
     source_type = "image"
     source_id = (var.use_marketplace_image ? var.mp_listing_resource_id : var.images[var.region])
-# "${var.images[var.region]}"
   }
 
   launch_options {
@@ -151,7 +147,6 @@ resource "oci_core_instance" "bastion" {
   source_details {
     source_type = "image"
     source_id   = (var.use_marketplace_image ? var.mp_listing_resource_id : var.images[var.region])
-# "${var.images[var.region]}"
   }
 }
 

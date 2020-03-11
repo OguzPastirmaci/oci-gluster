@@ -22,7 +22,7 @@ variable bastion_hostname_prefix { default = "bastion-" }
 
 variable gluster_server_shape { default = "VM.Standard2.8" }
 variable gluster_server_node_count { default = 2 }
-variable gluster_server_disk_count { default = 1 }
+variable gluster_server_disk_count { default = 4 }
 variable gluster_server_disk_size { default = 50 }
 # Make sure disk_count is a multiplier of num_of_disks_in_brick.  i.e: disk_count/num_of_disks_in_brick = an Integer, eg: disk_count=8,num_of_disks_in_brick=4 (8/4=2).
 variable gluster_server_num_of_disks_in_brick { default = 1 }
@@ -33,7 +33,7 @@ variable gluster_server_hostname_prefix { default = "g-server-" }
 
 
 # Client nodes variables
-variable client_node_shape { default = "VM.Standard2.2" }
+variable client_node_shape { default = "VM.Standard2.8" }
 variable client_node_count { default = 1 }
 variable client_node_hostname_prefix { default = "g-compute-" }
 
@@ -45,10 +45,9 @@ variable client_node_hostname_prefix { default = "g-compute-" }
 */
 # Valid values "5.9" , "3.12" on Oracle Linux Operating System
 variable gluster_version { default = "5.9" }
-# valid values are "Distributed", "Dispersed" , "DistributedDispersed"
-# Future release may support:  "DistributedReplicated", "Replicated".  "Dispersed" volumes types are preferred over Replicated versions.
+# valid values are Distributed, Dispersed , DistributedDispersed, DistributedReplicated, Replicated
 variable gluster_volume_types { default = "Distributed" }
-# replica field used only when VolumeTypes is "Replicated" or "DistributedReplicated". Otherwise assume no replication of data (replica=1 means no replication)
+# replica field used only when VolumeTypes is "Replicated" or "DistributedReplicated". Otherwise assume no replication of data (replica=1 means no replication, only 1 copy of data in filesystem.)
 variable gluster_replica { default = 1 }
 # Has to be in Kilobytes only. Mention only numerical value, example 256, not 256K
 variable gluster_block_size { default = "256" }
@@ -57,12 +56,6 @@ variable gluster_mount_point { default = "/glusterfs" }
 variable gluster_high_availability { default = false }
 
 
-
-/*
-variable "AD" {
-  default = "1"
-}
-*/
 ##################################################
 ## Variables which should not be changed by user
 ##################################################
@@ -166,7 +159,6 @@ locals {
   vcn_domain_name="${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com"
   server_filesystem_vnic_hostname_prefix = "${var.gluster_server_hostname_prefix}fs-vnic-"
 
-
   # If ad_number is non-negative use it for AD lookup, else use ad_name.
   # Allows for use of ad_number in TF deploys, and ad_name in ORM.
   # Use of max() prevents out of index lookup call.
@@ -181,7 +173,7 @@ variable "ad_name" {
   default = ""
 }
 
-# This is currently used for the deployment.
+# This is currently used for the deployment. Valid values 0,1,2.
 variable "ad_number" {
   default = "0"
 }

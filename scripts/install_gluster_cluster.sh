@@ -1,24 +1,10 @@
 
 set -x
 
-echo "server_dual_nics=\"${server_dual_nics}\"" >> /tmp/env_variables.sh
-echo "storage_subnet_domain_name=\"${storage_subnet_domain_name}\"" >> /tmp/env_variables.sh
-echo "filesystem_subnet_domain_name=\"${filesystem_subnet_domain_name}\"" >> /tmp/env_variables.sh
-echo "vcn_domain_name=\"${vcn_domain_name}\"" >> /tmp/env_variables.sh
 
-echo "disk_size=\"${disk_size}\""  >> /tmp/env_variables.sh
-echo "disk_count=\"${disk_count}\""  >> /tmp/env_variables.sh
-echo "raid_enabled=\"${raid_enabled}\""  >> /tmp/env_variables.sh
-echo "num_of_disks_in_brick=\"${num_of_disks_in_brick}\""  >> /tmp/env_variables.sh
-
-
-
-#server_node_count=$2
-#server_hostname_prefix=$3
 echo "server_node_count = $server_node_count"
 echo "server_hostname_prefix = $server_hostname_prefix"
 
-#lvm_stripe_size="1024k"
 # block_size is expected be to numerical only, but still check and remove k,K,kb,KB them, if they exist. 
 lvm_stripe_size=`echo $block_size | gawk -F"k|K|KB|kb" ' { print $1 }'` ;
 echo $lvm_stripe_size;
@@ -49,9 +35,7 @@ function tuned_config() {
 }
 
 function configure_nics() {
-
-# We use 2 VNICs - irrespective of BM/VM. One for storage traffic, another for server/client traffic
-# if [ "$server_dual_nics" = "false" ]; then
+   # We use 2 VNICs - irrespective of BM/VM. One for storage traffic, another for server/client traffic
 
    # Wait till 2nd NIC is configured
    privateIp=`curl -s http://169.254.169.254/opc/v1/vnics/ | jq '.[1].privateIp ' | sed 's/"//g' ` ;
@@ -96,47 +80,41 @@ NM_CONTROLLED=no
     THIS_FQDN=$SecondVNicFQDNHostname
     THIS_HOST=${THIS_FQDN%%.*}
     SecondVNICDomainName=${THIS_FQDN#*.*}
-
-#  else
-#    echo "todo"
-#  fi
 }
 
 function tune_nics() {
-nic_lst=$(ifconfig | grep " flags" | grep -v "^lo:" | gawk -F":" '{ print $1 }' | sort) ; echo $nic_lst
-for nic in $nic_lst
-do
+  nic_lst=$(ifconfig | grep " flags" | grep -v "^lo:" | gawk -F":" '{ print $1 }' | sort) ; echo $nic_lst
+  for nic in $nic_lst
+  do
     ethtool -G $nic rx 2047 tx 2047 rx-jumbo 8191
-done
+  done
 }
 
 
 
 function tune_sysctl() {
+  echo "net.core.wmem_max=16777216" >> /etc/sysctl.conf
+  echo "net.core.rmem_max=16777216" >> /etc/sysctl.conf
+  echo "net.core.wmem_default=16777216" >> /etc/sysctl.conf
+  echo "net.core.rmem_default=16777216" >> /etc/sysctl.conf
+  echo "net.core.optmem_max=16777216" >> /etc/sysctl.conf
+  echo "net.core.netdev_max_backlog=27000" >> /etc/sysctl.conf
+  echo "kernel.sysrq=1" >> /etc/sysctl.conf
+  echo "kernel.shmmax=18446744073692774399" >> /etc/sysctl.conf
+  echo "net.core.somaxconn=8192" >> /etc/sysctl.conf
+  echo "net.ipv4.tcp_adv_win_scale=2" >> /etc/sysctl.conf
+  echo "net.ipv4.tcp_low_latency=1" >> /etc/sysctl.conf
+  echo "net.ipv4.tcp_rmem = 212992 87380 16777216" >> /etc/sysctl.conf
+  echo "net.ipv4.tcp_sack = 1" >> /etc/sysctl.conf
+  echo "net.ipv4.tcp_window_scaling = 1" >> /etc/sysctl.conf
+  echo "net.ipv4.tcp_wmem = 212992 65536 16777216" >> /etc/sysctl.conf
+  echo "vm.min_free_kbytes = 65536" >> /etc/sysctl.conf
+  echo "net.ipv4.tcp_no_metrics_save = 0" >> /etc/sysctl.conf
+  echo "net.ipv4.tcp_congestion_control = cubic" >> /etc/sysctl.conf
+  echo "net.ipv4.tcp_timestamps = 0" >> /etc/sysctl.conf
+  echo "net.ipv4.tcp_congestion_control = htcp" >> /etc/sysctl.conf
 
-echo "net.core.wmem_max=16777216" >> /etc/sysctl.conf
-echo "net.core.rmem_max=16777216" >> /etc/sysctl.conf
-echo "net.core.wmem_default=16777216" >> /etc/sysctl.conf
-echo "net.core.rmem_default=16777216" >> /etc/sysctl.conf
-echo "net.core.optmem_max=16777216" >> /etc/sysctl.conf
-echo "net.core.netdev_max_backlog=27000" >> /etc/sysctl.conf
-echo "kernel.sysrq=1" >> /etc/sysctl.conf
-echo "kernel.shmmax=18446744073692774399" >> /etc/sysctl.conf
-echo "net.core.somaxconn=8192" >> /etc/sysctl.conf
-echo "net.ipv4.tcp_adv_win_scale=2" >> /etc/sysctl.conf
-echo "net.ipv4.tcp_low_latency=1" >> /etc/sysctl.conf
-echo "net.ipv4.tcp_rmem = 212992 87380 16777216" >> /etc/sysctl.conf
-echo "net.ipv4.tcp_sack = 1" >> /etc/sysctl.conf
-echo "net.ipv4.tcp_window_scaling = 1" >> /etc/sysctl.conf
-echo "net.ipv4.tcp_wmem = 212992 65536 16777216" >> /etc/sysctl.conf
-echo "vm.min_free_kbytes = 65536" >> /etc/sysctl.conf
-echo "net.ipv4.tcp_no_metrics_save = 0" >> /etc/sysctl.conf
-echo "net.ipv4.tcp_congestion_control = cubic" >> /etc/sysctl.conf
-echo "net.ipv4.tcp_timestamps = 0" >> /etc/sysctl.conf
-echo "net.ipv4.tcp_congestion_control = htcp" >> /etc/sysctl.conf
-
-/sbin/sysctl -p /etc/sysctl.conf
-
+  /sbin/sysctl -p /etc/sysctl.conf
 }
 
 
@@ -190,48 +168,74 @@ make_filesystem()
 
 create_bricks()
 {
-    # Check if NVME
-    if [ `lsblk -d --noheadings | awk '{print $1}' | grep nvme0n1` = "nvme0n1" ]; then NVME=true; else NVME=false; fi
 
-    # Wait for block-attach of the Block volumes to complete. Terraform then creates the below file on server nodes of cluster.
-    while [ ! -f /tmp/block-attach.complete ]
+  nvme_lst=$(ls /dev/ | grep nvme | grep n1 | sort)
+  nvme_cnt=$(ls /dev/ | grep nvme | grep n1 | wc -l)
+
+  if [ $nvme_cnt -gt 0 ]; then
+
+  brick_counter=1
+  count=1
+  # Configure physical volumes and volume group
+      for disk in $nvme_lst
+      do
+          dataalignment=$((block_size)); echo $dataalignment;
+          pvcreate --dataalignment $dataalignment  /dev/$disk
+          physicalextentsize="${block_size}K";  echo $physicalextentsize
+          vgcreate  --physicalextentsize $physicalextentsize vg_gluster_${brick_counter} /dev/$disk
+          vgextend vg_gluster_${brick_counter} /dev/$disk
+          vgdisplay
+          brick_name="brick${brick_counter}"
+          lvm_disk_count=1
+          vg_gluster_name="vg_gluster_${brick_counter}"
+          lvm_stripes_cnt=1
+          make_filesystem
+          brick_counter=$((brick_counter+1))
+          count=$((count+1))
+      done
+  fi
+
+  # Wait for block-attach of the Block volumes to complete. Terraform then creates the below file on server nodes of cluster.
+  while [ ! -f /tmp/block-attach.complete ]
     do
       sleep 60s
       echo "Waiting for block-attach via Terraform to  complete ..."
     done
 
 
-#chunk_size=${block_size}; chunk_size_tmp=`echo $chunk_size | gawk -F"K" ' { print $1 }'` ; echo $chunk_size_tmp;
+  # Gather list of block devices for brick config
+  blk_lst=$(lsblk -d --noheadings | grep -v sda | grep -v nvme | awk '{ print $1 }' | sort)
+  blk_cnt=$(lsblk -d --noheadings | grep -v sda | grep -v nvme | wc -l)
 
-# Gather list of block devices for brick config
-blk_lst=$(lsblk -d --noheadings | grep -v sda | awk '{ print $1 }' | sort)
-blk_cnt=$(lsblk -d --noheadings | grep -v sda | wc -l)
+  # to prevent overlapping with nvme brick names.
+  start_index=10
+  # reset the counters.
+  disk_per_brick_counter=0
+  brick_counter=1
+  count=1
 
+  if [ $blk_cnt -ge $num_of_disks_in_brick ]; then
 
-if [ $blk_cnt -ge $num_of_disks_in_brick ]; then
-
-disk_per_brick_counter=0
-brick_counter=1
-count=1
-# Configure physical volumes and volume group
+    # Configure physical volumes and volume group
     for disk in $blk_lst
     do
+        index=$((brick_counter+start_index))
         dataalignment=$((num_of_disks_in_brick*block_size)); echo $dataalignment;
         pvcreate --dataalignment $dataalignment  /dev/$disk
         physicalextentsize="${block_size}K";  echo $physicalextentsize
-        vgcreate  --physicalextentsize $physicalextentsize vg_gluster_${brick_counter} /dev/$disk
-        vgextend vg_gluster_${brick_counter} /dev/$disk
+        vgcreate  --physicalextentsize $physicalextentsize vg_gluster_$index /dev/$disk
+        vgextend vg_gluster_$index /dev/$disk
 
         if [ $disk_per_brick_counter -lt $num_of_disks_in_brick ]; then
             disk_per_brick_counter=$((disk_per_brick_counter+1))
         fi
 
-# Logic for last set of disks to call make_filesystem
+        # Logic for last set of disks to call make_filesystem
         if [ $blk_cnt -eq $count -o $disk_per_brick_counter -eq $num_of_disks_in_brick ]; then
             vgdisplay
-            brick_name="brick${brick_counter}"
+            brick_name="brick${index}"
             lvm_disk_count=$((num_of_disks_in_brick*1))
-            vg_gluster_name="vg_gluster_${brick_counter}"
+            vg_gluster_name="vg_gluster_${index}"
             lvm_stripes_cnt=$num_of_disks_in_brick
             make_filesystem
             brick_counter=$((brick_counter+1))
@@ -241,11 +245,10 @@ count=1
         count=$((count+1))
     done
 
-else
+  else
     echo "Not enough disks attached"
     exit 1;
-fi
-
+  fi
 }
 
 
