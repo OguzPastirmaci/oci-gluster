@@ -20,20 +20,20 @@ variable bastion_shape { default = "VM.Standard2.2" }
 variable bastion_node_count { default = 1 }
 variable bastion_hostname_prefix { default = "bastion-" }
 
-variable gluster_server_shape { default = "VM.Standard2.8" }
-variable gluster_server_node_count { default = 2 }
-variable gluster_server_disk_count { default = 4 }
-variable gluster_server_disk_size { default = 50 }
+variable gluster_server_shape { default = "BM.Standard2.52" }
+variable gluster_server_node_count { default = 3 }
+variable gluster_server_disk_count { default = 8 }
+variable gluster_server_disk_size { default = 800 }
 # Make sure disk_count is a multiplier of num_of_disks_in_brick.  i.e: disk_count/num_of_disks_in_brick = an Integer, eg: disk_count=8,num_of_disks_in_brick=4 (8/4=2).
 variable gluster_server_num_of_disks_in_brick { default = 1 }
 # Block volume elastic performance tier.  The number of volume performance units (VPUs) that will be applied to this volume per GB, representing the Block Volume service's elastic performance options. See https://docs.cloud.oracle.com/en-us/iaas/Content/Block/Concepts/blockvolumeelasticperformance.htm for more information.  Allowed values are 0, 10, and 20.  Recommended value is 10 for balanced performance and 20 to receive higher performance (IO throughput and IOPS) per GB.
-variable gluster_server_disk_vpus_per_gb { default = "10" }
+variable gluster_server_disk_vpus_per_gb { default = "20" }
 variable gluster_server_hostname_prefix { default = "g-server-" }
 
 
 
 # Client nodes variables
-variable client_node_shape { default = "VM.Standard2.8" }
+variable client_node_shape { default = "VM.Standard2.24" }
 variable client_node_count { default = 1 }
 variable client_node_hostname_prefix { default = "g-compute-" }
 
@@ -46,11 +46,11 @@ variable client_node_hostname_prefix { default = "g-compute-" }
 # Valid values "5.9" , "3.12" on Oracle Linux Operating System
 variable gluster_version { default = "5.9" }
 # valid values are Distributed, Dispersed , DistributedDispersed, DistributedReplicated, Replicated
-variable gluster_volume_types { default = "Distributed" }
+variable gluster_volume_types { default = "DistributedReplicated" }
 # replica field used only when VolumeTypes is "Replicated" or "DistributedReplicated". Otherwise assume no replication of data (replica=1 means no replication, only 1 copy of data in filesystem.)
 variable gluster_replica { default = 1 }
 # Has to be in Kilobytes only. Mention only numerical value, example 256, not 256K
-variable gluster_block_size { default = "256" }
+variable gluster_block_size { default = "128" }
 variable gluster_mount_point { default = "/glusterfs" }
 # To be supported in future
 variable gluster_high_availability { default = false }
@@ -134,7 +134,7 @@ See https://docs.us-phoenix-1.oraclecloud.com/images/ or https://docs.cloud.orac
 Oracle-provided image "CentOS-7-2019.08.26-0"
 https://docs.cloud.oracle.com/iaas/images/image/ea67dd20-b247-4937-bfff-894962212415/
 */
-/* imagesCentOS_Latest */
+/* imagesCentOS_Latest
 variable "imagesCentOS" {
   type = map(string)
   default = {
@@ -151,6 +151,7 @@ variable "imagesCentOS" {
     us-phoenix-1   = "ocid1.image.oc1.phx.aaaaaaaag7vycom7jhxqxfl6rxt5pnf5wqolksl6onuqxderkqrgy4gsi3hq"
   }
 }
+*/
 
 locals {
   server_dual_nics = (length(regexall("^BM", var.gluster_server_shape)) > 0 ? true : false)
@@ -181,15 +182,16 @@ variable "ad_number" {
 #-------------------------------------------------------------------------------------------------------------
 # Marketplace variables
 # ------------------------------------------------------------------------------------------------------------
+# Oracle Linux 7.7 UEK Image for GlusterFS filesystem
 
 variable "mp_listing_id" {
-  default = "ocid1.appcataloglisting.oc1..aaaaaaaavxdzoflapwjvlapap6w7at2gnd66zah6ce2cxdhmftft5hz7itxa"
+  default = "ocid1.appcataloglisting.oc1..aaaaaaaa6fjcgyilbaa3zegmdvwsaztjq6gaijhnognzmipz2l6lhnx3ykza"
 }
 variable "mp_listing_resource_id" {
-  default = "ocid1.image.oc1..aaaaaaaajpe7s6yzdfrhxhn5cuxtssuvoj22bired5qhydm3hcolgyrciz7q"
+  default = "ocid1.image.oc1..aaaaaaaaqgspr7vy2xs2xdyqqvxyrdgizkxnbmq5pqwxr4rmnnbnl6cays2a"
 }
 variable "mp_listing_resource_version" {
- default = "1.0-030520202328"
+ default = "1.0"
 }
 
 variable "use_marketplace_image" {

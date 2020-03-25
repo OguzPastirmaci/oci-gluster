@@ -63,9 +63,9 @@ else
   sudo yum install glusterfs glusterfs-fuse attr -y
 fi
 
-tuned_config
-tune_nics
-tune_sysctl
+### tuned_config
+### tune_nics
+### tune_sysctl
 
 mount_glusterfs
 while [ $? -ne 0 ]; do

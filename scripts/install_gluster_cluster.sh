@@ -314,10 +314,10 @@ create_gluster_volumes()
 
 update_resolvconf
 config_node
-tuned_config
+### tuned_config
 configure_nics
-tune_nics
-tune_sysctl
+### tune_nics
+### tune_sysctl
 create_bricks
 
 # Start gluster services
@@ -327,10 +327,10 @@ gluster_probe_peers
 create_gluster_volumes
 
 # Tuning
-gluster volume set  glustervol performance.cache-size 15GB
-gluster volume set  glustervol nfs.disable on
-gluster volume set  glustervol performance.io-cache on
-gluster volume set  glustervol performance.io-thread-count 32
+### gluster volume set  glustervol performance.cache-size 15GB
+### gluster volume set  glustervol nfs.disable on
+### gluster volume set  glustervol performance.io-cache on
+### gluster volume set  glustervol performance.io-thread-count 32
 
 
 exit 0

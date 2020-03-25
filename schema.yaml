@@ -177,8 +177,8 @@ variables:
   gluster_block_size:
     type: string
     required: true
-    default: "256K"
-    description: "Filesystem block size used at time of creation. Size in kilobytes only. Example 256K for 256 kilobytes"
+    default: "256"
+    description: "Has to be in Kilobytes only. Mention only numerical value, example 256, not 256K"
   gluster_mount_point:
     type: string
     required: true
