@@ -20,9 +20,11 @@ variable bastion_shape { default = "VM.Standard2.2" }
 variable bastion_node_count { default = 1 }
 variable bastion_hostname_prefix { default = "bastion-" }
 
+#  BM.Standard2.52
 variable gluster_server_shape { default = "BM.Standard2.52" }
 variable gluster_server_node_count { default = 3 }
 variable gluster_server_disk_count { default = 8 }
+# 800
 variable gluster_server_disk_size { default = 800 }
 # Make sure disk_count is a multiplier of num_of_disks_in_brick.  i.e: disk_count/num_of_disks_in_brick = an Integer, eg: disk_count=8,num_of_disks_in_brick=4 (8/4=2).
 variable gluster_server_num_of_disks_in_brick { default = 1 }
@@ -46,7 +48,7 @@ variable client_node_hostname_prefix { default = "g-compute-" }
 # Valid values "5.9" , "3.12" on Oracle Linux Operating System
 variable gluster_version { default = "5.9" }
 # valid values are Distributed, Dispersed , DistributedDispersed, DistributedReplicated, Replicated
-variable gluster_volume_types { default = "DistributedReplicated" }
+variable gluster_volume_types { default = "Distributed" }
 # replica field used only when VolumeTypes is "Replicated" or "DistributedReplicated". Otherwise assume no replication of data (replica=1 means no replication, only 1 copy of data in filesystem.)
 variable gluster_replica { default = 1 }
 # Has to be in Kilobytes only. Mention only numerical value, example 256, not 256K
@@ -176,7 +178,7 @@ variable "ad_name" {
 
 # This is currently used for the deployment. Valid values 0,1,2.
 variable "ad_number" {
-  default = "0"
+  default = "-1"
 }
 
 #-------------------------------------------------------------------------------------------------------------

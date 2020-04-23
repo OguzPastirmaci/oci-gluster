@@ -150,4 +150,47 @@ resource "oci_core_instance" "bastion" {
   }
 }
 
+# Run on 1st Gluster Server node only.
+resource "null_resource" "create_gluster_volumes" {
+  depends_on = [ oci_core_instance.gluster_server ]
+  count      = 1
+
+
+  provisioner "file" {
+    source      = "${var.scripts_directory}/"
+    destination = "/tmp/"
+    connection {
+        agent               = false
+        timeout             = "30m"
+        host                = element(oci_core_instance.gluster_server.*.private_ip, count.index)
+        user                = var.ssh_user
+        private_key         = tls_private_key.public_private_key_pair.private_key_pem
+        bastion_host        = oci_core_instance.bastion.*.public_ip[0]
+        bastion_port        = "22"
+        bastion_user        = var.ssh_user
+        bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem
+    }
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "set -x",
+      "echo about to run /tmp/nodes-cloud-init-complete-status-check.sh",
+      "sudo -s bash -c 'set -x && chmod 777 /tmp/*.sh'",
+      "sudo -s bash -c 'set -x && /tmp/nodes-cloud-init-complete-status-check.sh'",
+      "sudo -s bash -c \"set -x && /tmp/create_gluster_volumes.sh  ${var.gluster_server_node_count} ${local.server_filesystem_vnic_hostname_prefix} ${local.filesystem_subnet_domain_name} ${var.gluster_volume_types} ${var.gluster_replica} \"",
+    ]
+    connection {
+        agent               = false
+        timeout             = "30m"
+        host                = element(oci_core_instance.gluster_server.*.private_ip, count.index)
+        user                = var.ssh_user
+        private_key         = tls_private_key.public_private_key_pair.private_key_pem
+        bastion_host        = oci_core_instance.bastion.*.public_ip[0]
+        bastion_port        = "22"
+        bastion_user        = var.ssh_user
+        bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem
+    }
+  }
+}
 
