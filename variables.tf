@@ -7,7 +7,7 @@ variable "vpc_cidr" { default = "10.0.0.0/16" }
 
 # Oracle-Linux-7.6-2019.05.28-0
 # https://docs.cloud.oracle.com/iaas/images/image/6180a2cb-be6c-4c78-a69f-38f2714e6b3d/
-variable "images" {
+variable "images1" {
   type = map(string)
   default = {
     us-ashburn-1   = "ocid1.image.oc1.iad.aaaaaaaaj6pcmnh6y3hdi3ibyxhhflvp3mj2qad4nspojrnxc6pzgn2w3k5q"
@@ -136,8 +136,8 @@ See https://docs.us-phoenix-1.oraclecloud.com/images/ or https://docs.cloud.orac
 Oracle-provided image "CentOS-7-2019.08.26-0"
 https://docs.cloud.oracle.com/iaas/images/image/ea67dd20-b247-4937-bfff-894962212415/
 */
-/* imagesCentOS_Latest
-variable "imagesCentOS" {
+/* imagesCentOS_7.6.1810 */
+variable "imagesC" {
   type = map(string)
   default = {
     ap-mumbai-1 = "ocid1.image.oc1.ap-mumbai-1.aaaaaaaabfqn5vmh3pg6ynpo6bqdbg7fwruu7qgbvondjic5ccr4atlj4j7q"
@@ -153,13 +153,29 @@ variable "imagesCentOS" {
     us-phoenix-1   = "ocid1.image.oc1.phx.aaaaaaaag7vycom7jhxqxfl6rxt5pnf5wqolksl6onuqxderkqrgy4gsi3hq"
   }
 }
+
+/*
+CentOS-7-2020.06.16-0
+https://docs.cloud.oracle.com/en-us/iaas/images/image/38c87774-4b0a-440a-94b2-c321af1824e4/
+7.8.2003 - 3.10.0-1127.10.1.el7.x86_64
 */
+variable "images" {
+  type = map(string)
+  default = {
+    us-ashburn-1   = "ocid1.image.oc1.iad.aaaaaaaasa5eukeizlabgietiktm7idhpegni42d4d3xz7kvi6nyao5aztlq"
+    us-phoenix-1   = "ocid1.image.oc1.phx.aaaaaaaajw5o3qf7cha2mgov5vxnwyctmcy4eqayy7o4w7s6cqeyppqd3smq"
+  }
+}
+
 
 locals {
   server_dual_nics = (length(regexall("^BM", var.gluster_server_shape)) > 0 ? true : false)
-  storage_subnet_domain_name=(local.server_dual_nics ? "${oci_core_subnet.private[0].dns_label}.${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com" : "${oci_core_subnet.private[0].dns_label}.${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com" )
-  filesystem_subnet_domain_name=(local.server_dual_nics ? "${oci_core_subnet.privateb[0].dns_label}.${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com" : "${oci_core_subnet.privateb[0].dns_label}.${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com" )
-  vcn_domain_name="${oci_core_virtual_network.gluster.dns_label}.oraclevcn.com"
+  storage_subnet_domain_name=("${data.oci_core_subnet.storage_subnet.dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" )
+# (local.server_dual_nics ? "${oci_core_subnet.storage[0].dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" : "${oci_core_subnet.storage[0].dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" )
+  filesystem_subnet_domain_name= ( "${data.oci_core_subnet.fs_subnet.dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" )
+# (local.server_dual_nics ? "${oci_core_subnet.fs[0].dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" : "${oci_core_subnet.fs[0].dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" )
+  vcn_domain_name=("${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" )
+# "${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com"
   server_filesystem_vnic_hostname_prefix = "${var.gluster_server_hostname_prefix}fs-vnic-"
 
   # If ad_number is non-negative use it for AD lookup, else use ad_name.
@@ -197,5 +213,34 @@ variable "mp_listing_resource_version" {
 }
 
 variable "use_marketplace_image" {
-  default = true
+  default = false
+}
+
+
+variable "use_existing_vcn" {
+  default = "false"
+}
+
+variable "vcn_id" {
+  default = "ocid1.vcn.oc1.iad.amaaaaaa7rhxvoaaufglmdw7jvdeeuix3ag6zz5svee4snyzmxabb5q7hpmq"
+}
+
+variable "bastion_subnet_id" {
+  default = "ocid1.subnet.oc1.iad.aaaaaaaaxkfuasory4cwkl7jyrole5gpmq5nmdnxtbmnmuxhs5rgsdmubxaq"
+}
+
+variable "storage_subnet_id" {
+  default = "ocid1.subnet.oc1.iad.aaaaaaaafdditphyjamahq4eveevpci2cifpfsj53fh3a4kfw5p6ba6ymkmq"
+}
+
+variable "fs_subnet_id" {
+  default = "ocid1.subnet.oc1.iad.aaaaaaaa3epu2pbkwi4ae3pvn2exeom3pmzypm7w3lunndubburic2xlte7a"
+}
+
+locals {
+  bastion_subnet_id = var.use_existing_vcn ? var.bastion_subnet_id : element(concat(oci_core_subnet.public.*.id, [""]), 0)
+  storage_subnet_id   = var.use_existing_vcn ? var.storage_subnet_id : element(concat(oci_core_subnet.storage.*.id, [""]), 0)
+  fs_subnet_id        = var.use_existing_vcn ? var.fs_subnet_id : element(concat(oci_core_subnet.fs.*.id, [""]), 0)
+  client_subnet_id    = var.use_existing_vcn ? var.fs_subnet_id : element(concat(oci_core_subnet.fs.*.id, [""]), 0)
+
 }

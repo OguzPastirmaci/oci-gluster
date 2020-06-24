@@ -14,7 +14,9 @@ resource "oci_core_instance" "gluster_server" {
   display_name        = "${var.gluster_server_hostname_prefix}${format("%01d", count.index+1)}"
   hostname_label      = "${var.gluster_server_hostname_prefix}${format("%01d", count.index+1)}"
   shape               = var.gluster_server_shape
-  subnet_id           = "${oci_core_subnet.private.*.id[0]}"
+  #subnet_id           = "${oci_core_subnet.private.*.id[0]}"
+  subnet_id           = local.storage_subnet_id
+
 
   source_details {
     source_type = "image"
@@ -72,7 +74,9 @@ resource "oci_core_instance" "client_node" {
   display_name        = "${var.client_node_hostname_prefix}${format("%01d", count.index+1)}"
   hostname_label      = "${var.client_node_hostname_prefix}${format("%01d", count.index+1)}"
   shape               = var.client_node_shape
-  subnet_id           = (local.server_dual_nics ? oci_core_subnet.privateb.*.id[0] : oci_core_subnet.privateb.*.id[0])
+  #subnet_id           = (local.server_dual_nics ? oci_core_subnet.privateb.*.id[0] : oci_core_subnet.privateb.*.id[0])
+  subnet_id           = local.client_subnet_id
+
 
   source_details {
     source_type = "image"
@@ -126,7 +130,8 @@ resource "oci_core_instance" "bastion" {
   hostname_label      = "${var.bastion_hostname_prefix}${format("%01d", count.index+1)}"
 
   create_vnic_details {
-    subnet_id              = "${oci_core_subnet.public.*.id[0]}"
+    subnet_id              = local.bastion_subnet_id
+# "${oci_core_subnet.public.*.id[0]}"
     skip_source_dest_check = true
   }
 
