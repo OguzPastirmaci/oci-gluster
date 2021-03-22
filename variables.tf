@@ -181,12 +181,6 @@ locals {
 }
 
 
-
-# Not used for normal terraform apply, added for ORM deployments.
-variable "ad_name" {
-  default = ""
-}
-
 # This is currently used for the deployment. Valid values 0,1,2.
 variable "ad_number" {
   default = "-1"
@@ -217,19 +211,19 @@ variable "use_existing_vcn" {
 }
 
 variable "vcn_id" {
-  default = "ocid1.vcn.oc1.iad.amaaaaaa7rhxvoaaufglmdw7jvdeeuix3ag6zz5svee4snyzmxabb5q7hpmq"
+  default = ""
 }
 
 variable "bastion_subnet_id" {
-  default = "ocid1.subnet.oc1.iad.aaaaaaaaxkfuasory4cwkl7jyrole5gpmq5nmdnxtbmnmuxhs5rgsdmubxaq"
+  default = ""
 }
 
 variable "storage_subnet_id" {
-  default = "ocid1.subnet.oc1.iad.aaaaaaaafdditphyjamahq4eveevpci2cifpfsj53fh3a4kfw5p6ba6ymkmq"
+  default = ""
 }
 
 variable "fs_subnet_id" {
-  default = "ocid1.subnet.oc1.iad.aaaaaaaa3epu2pbkwi4ae3pvn2exeom3pmzypm7w3lunndubburic2xlte7a"
+  default = ""
 }
 
 locals {

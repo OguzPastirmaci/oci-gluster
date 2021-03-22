@@ -27,6 +27,17 @@ groupings:
     variables:
     - vpc_cidr
     - availablity_domain_name
+    - use_existing_vcn
+
+  - title: Exisiting VCN usage
+    visible: 
+      and:
+        - use_existing_vcn
+    variables:
+    - vcn_id
+    - bastion_subnet_id
+    - storage_subnet_id
+    - fs_subnet_id
 
   - title: "Bastion Instance Configuration"
     visible: true
@@ -81,6 +92,39 @@ variables:
       compartmentId: ${compartment_ocid}
     required: true
 
+  use_existing_vcn:
+    required: true
+    visibile: true
+    type: boolean
+    default: false
+    title: "Use existing VCN?"
+    description: "Check the box to use already existing VCN."
+
+  vcn_id:
+    required: false
+    type: string
+    title: "VCN OCID"
+    description: "Already existing VCN OCID to be used."
+
+  bastion_subnet_id:
+    required: false
+    type: string
+    title: "Bastion Subnet OCID"
+    description: "Already existing Bastion Subnet OCID to be used."
+
+  storage_subnet_id:
+    required: false
+    type: string
+    title: "Storage Subnet OCID"
+    description: "Already existing Storage Subnet OCID to be used."
+
+  fs_subnet_id:
+    required: false
+    type: string
+    title: "FS Subnet OCID"
+    description: "Already existing FS Subnet OCID to be used."
+
+
   bastion_shape:
     title: "Bastion Compute Shape"
     description: "Shape for bastion instances."
@@ -108,7 +152,7 @@ variables:
     title: "Gluster Server Compute Shape"
     description: "Shape for gluster server instances."
     type: oci:core:instanceshape:name
-    default: "VM.Standard2.2"
+    default: "BM.Standard2.52"
     required: true
     dependsOn:
       compartmentId: ${compartment_ocid}
@@ -118,7 +162,7 @@ variables:
     title: "Number of Gluster Servers"
     description: "Number of gluster server instances."
     type: integer
-    default: 1
+    default: 3
     minimum: 1
     required: true
 
