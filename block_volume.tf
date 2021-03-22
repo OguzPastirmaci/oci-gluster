@@ -9,7 +9,7 @@ resource "oci_core_volume" "gluster_blockvolume" {
 
   #availability_domain = data.oci_identity_availability_domains.ADs.availability_domains[((count.index % var.gluster_server["node_count"])%3)]["name"]
   #availability_domain = data.oci_identity_availability_domains.ADs.availability_domains[var.AD - 1]["name"]
-  availability_domain = local.ad
+  availability_domain = var.availablity_domain_name
 
   compartment_id      = var.compartment_ocid
   display_name        = "server${count.index % var.gluster_server_node_count + 1}-brick${count.index % var.gluster_server_disk_count + 1}"
@@ -64,7 +64,7 @@ resource "null_resource" "notify_server_nodes_block_attach_complete" {
         host                = element(oci_core_instance.gluster_server.*.private_ip, count.index)
         user                = var.ssh_user
         private_key         = tls_private_key.public_private_key_pair.private_key_pem
-        bastion_host        = "${oci_core_instance.bastion.*.public_ip[0]}"
+        bastion_host        = oci_core_instance.bastion.*.public_ip[0]
         bastion_port        = "22"
         bastion_user        = var.ssh_user
         bastion_private_key = tls_private_key.public_private_key_pair.private_key_pem

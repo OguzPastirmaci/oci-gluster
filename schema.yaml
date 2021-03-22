@@ -20,18 +20,21 @@ groupings:
     - mp_listing_resource_id
     - mp_listing_resource_version
     - use_marketplace_image
+
   - title: "General Deployment Configuration"
     visible: true
     variables:
     - vpc_cidr
     - ssh_public_key
     - ad_name
+
   - title: "Bastion Instance Configuration"
     visible: true
     variables:
     - bastion_shape
     - bastion_node_count
     - bastion_hostname_prefix
+
   - title: "GlusterFS Server Instance Configuration"
     visible: true
     variables:
@@ -42,12 +45,14 @@ groupings:
     - gluster_server_disk_size
     - gluster_server_num_of_disks_in_brick
     - gluster_server_disk_vpus_per_gb
+
   - title: "GlusterFS Client Instance Configuration"
     visible: true
     variables:
     - client_node_shape
     - client_node_count
     - client_node_hostname_prefix
+    
   - title: "GlusterFS Filesystem Configuration"
     visible: true
     variables:

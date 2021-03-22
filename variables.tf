@@ -116,7 +116,7 @@ variable "volume_attach_device_mapping" {
 variable "region" {}
 variable "tenancy_ocid" {}
 variable "compartment_ocid" {}
-variable "ssh_public_key" {}
+variable "availablity_domain_name" {}
 
 
 /*
@@ -169,20 +169,15 @@ variable "images" {
 
 
 locals {
-  server_dual_nics = (length(regexall("^BM", var.gluster_server_shape)) > 0 ? true : false)
-  storage_subnet_domain_name=("${data.oci_core_subnet.storage_subnet.dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" )
-# (local.server_dual_nics ? "${oci_core_subnet.storage[0].dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" : "${oci_core_subnet.storage[0].dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" )
-  filesystem_subnet_domain_name= ( "${data.oci_core_subnet.fs_subnet.dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" )
-# (local.server_dual_nics ? "${oci_core_subnet.fs[0].dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" : "${oci_core_subnet.fs[0].dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" )
-  vcn_domain_name=("${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" )
-# "${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com"
+  server_dual_nics              = (length(regexall("^BM", var.gluster_server_shape)) > 0 ? true : false)
+  storage_subnet_domain_name    = ("${data.oci_core_subnet.storage_subnet.dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com")
+  filesystem_subnet_domain_name = ("${data.oci_core_subnet.fs_subnet.dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com")
+  vcn_domain_name               = ("${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com")
   server_filesystem_vnic_hostname_prefix = "${var.gluster_server_hostname_prefix}fs-vnic-"
 
   # If ad_number is non-negative use it for AD lookup, else use ad_name.
   # Allows for use of ad_number in TF deploys, and ad_name in ORM.
   # Use of max() prevents out of index lookup call.
-  ad = "${var.ad_number >= 0 ? lookup(data.oci_identity_availability_domains.availability_domains.availability_domains[max(0,var.ad_number)],"name") : var.ad_name}"
-
 }
 
 
