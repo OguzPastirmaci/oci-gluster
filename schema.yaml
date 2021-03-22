@@ -1,6 +1,7 @@
-title: "GlusterFS Deployment"
-schemaVersion: 1.0.0
-version: "20200310"
+title: "Create deployment for GlusterFS on Oracle Cloud Infrastructure Compute bare metal instances."
+stackDescription: "Deploy 3 nodes with GlusterFS on Oracle Cloud Infrastructure Compute bare metal instances."
+schemaVersion: 1.1.0
+version: "20190404"
 locale: "en"
 
 groupings:
@@ -25,7 +26,7 @@ groupings:
     visible: true
     variables:
     - vpc_cidr
-    - ad_name
+    - availablity_domain_name
 
   - title: "Bastion Instance Configuration"
     visible: true
@@ -264,7 +265,7 @@ variables:
     description: "Marketplace Image OCID"
     dependsOn:
       compartmentId: ${compartment_ocid}
-      
+
   mp_listing_resource_version:
     type: string
     required: true
