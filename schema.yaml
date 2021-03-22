@@ -17,6 +17,8 @@ groupings:
     - gluster_ol_repo_mapping
     - ad_number
     - images
+    - images1
+    - imagesC
     - mp_listing_id
     - mp_listing_resource_id
     - mp_listing_resource_version
