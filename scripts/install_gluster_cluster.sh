@@ -51,7 +51,7 @@ function configure_nics() {
    macAddr=`curl -s http://169.254.169.254/opc/v1/vnics/ | jq '.[1].macAddr ' | sed 's/"//g' ` ;
    subnetCidrBlock=`curl -s http://169.254.169.254/opc/v1/vnics/ | jq '.[1].subnetCidrBlock ' | sed 's/"//g' ` ;
    sleep 30s
-   curl -O https://docs.cloud.oracle.com/en-us/iaas/Content/Resources/Assets/secondary_vnic_all_configure.sh
+   wget -O secondary_vnic_all_configure.sh https://docs.cloud.oracle.com/en-us/iaas/Content/Resources/Assets/secondary_vnic_all_configure.sh
    chmod +x secondary_vnic_all_configure.sh
    ./secondary_vnic_all_configure.sh -c
    sleep 30s
@@ -332,5 +332,6 @@ create_gluster_volumes
 ### gluster volume set  glustervol performance.io-cache on
 ### gluster volume set  glustervol performance.io-thread-count 32
 
+touch /tmp/complete
 
 exit 0

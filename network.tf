@@ -4,24 +4,24 @@ All network resources for this template
 
 resource "oci_core_vcn" "vcn" {
   count          = var.use_existing_vcn ? 0 : 1
-  cidr_block = "${var.vpc_cidr}"
-  compartment_id = "${var.compartment_ocid}"
-  display_name = "gluster"
-  dns_label = "gluster"
+  cidr_block     = var.vpc_cidr
+  compartment_id = var.compartment_ocid
+  display_name   = "gluster"
+  dns_label      = "gluster"
 }
 
 resource "oci_core_internet_gateway" "internet_gateway" {
   count          = var.use_existing_vcn ? 0 : 1
-  compartment_id = "${var.compartment_ocid}"
-  display_name = "internet_gateway"
+  compartment_id = var.compartment_ocid
+  display_name   = "internet_gateway"
   vcn_id         = oci_core_vcn.vcn[0].id
 }
 
 resource "oci_core_route_table" "pubic_route_table" {
   count          = var.use_existing_vcn ? 0 : 1
-  compartment_id = "${var.compartment_ocid}"
+  compartment_id = var.compartment_ocid
   vcn_id         = oci_core_vcn.vcn[0].id
-  display_name = "RouteTableForComplete"
+  display_name   = "RouteTableForComplete"
   route_rules {
     cidr_block = "0.0.0.0/0"
     network_entity_id = oci_core_internet_gateway.internet_gateway[0].id
@@ -31,7 +31,7 @@ resource "oci_core_route_table" "pubic_route_table" {
 
 resource "oci_core_nat_gateway" "nat_gateway" {
   count          = var.use_existing_vcn ? 0 : 1
-  compartment_id = "${var.compartment_ocid}"
+  compartment_id = var.compartment_ocid
   vcn_id         = oci_core_vcn.vcn[0].id
   display_name   = "nat_gateway"
 }
@@ -39,7 +39,7 @@ resource "oci_core_nat_gateway" "nat_gateway" {
 
 resource "oci_core_route_table" "private_route_table" {
   count          = var.use_existing_vcn ? 0 : 1
-  compartment_id = "${var.compartment_ocid}"
+  compartment_id = var.compartment_ocid
   vcn_id         = oci_core_vcn.vcn[0].id
   display_name   = "private_route_tableForComplete"
   route_rules {
@@ -50,8 +50,8 @@ resource "oci_core_route_table" "private_route_table" {
 
 resource "oci_core_security_list" "public_security_list" {
   count          = var.use_existing_vcn ? 0 : 1
-  compartment_id = "${var.compartment_ocid}"
-  display_name = "Public Subnet"
+  compartment_id = var.compartment_ocid
+  display_name   = "Public Subnet"
   vcn_id         = oci_core_vcn.vcn[0].id
   egress_security_rules {
     destination = "0.0.0.0/0"
@@ -78,7 +78,7 @@ resource "oci_core_security_list" "public_security_list" {
 # https://www.ibm.com/support/knowledgecenter/en/STXKQY_5.0.3/com.ibm.spectrum.scale.v5r03.doc/bl1adv_firewall.htm
 resource "oci_core_security_list" "private_security_list" {
   count          = var.use_existing_vcn ? 0 : 1
-  compartment_id = "${var.compartment_ocid}"
+  compartment_id = var.compartment_ocid
   display_name   = "Private"
   vcn_id         = oci_core_vcn.vcn[0].id
 
@@ -88,7 +88,7 @@ resource "oci_core_security_list" "private_security_list" {
   }
   egress_security_rules {
     protocol    = "all"
-    destination = "${var.vpc_cidr}"
+    destination = var.vpc_cidr
   }
   ingress_security_rules  {
     tcp_options  {
@@ -96,7 +96,7 @@ resource "oci_core_security_list" "private_security_list" {
       min = 443
     }
     protocol = "6"
-    source   = "${var.vpc_cidr}"
+    source   = var.vpc_cidr
   }
   ingress_security_rules {
     tcp_options  {
@@ -104,7 +104,7 @@ resource "oci_core_security_list" "private_security_list" {
       min = 22
     }
     protocol = "6"
-    source   = "${var.vpc_cidr}"
+    source   = var.vpc_cidr
   }
   ingress_security_rules  {
     tcp_options {
@@ -112,20 +112,19 @@ resource "oci_core_security_list" "private_security_list" {
       min = 80
     }
     protocol = "6"
-    source   = "${var.vpc_cidr}"
+    source   = var.vpc_cidr
   }
   ingress_security_rules  {
     protocol = "all"
-    source = "${var.vpc_cidr}"
+    source   = var.vpc_cidr
   }
 }
 
 
 # Regional subnet - public
 resource "oci_core_subnet" "public" {
-  count          = var.use_existing_vcn ? 0 : 1
+  count             = var.use_existing_vcn ? 0 : 1
   cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index)
-  #display_name      = "${local.cluster_name}_public"
   display_name      = "Public-Subnet"
   compartment_id    = var.compartment_ocid
   vcn_id            = oci_core_vcn.vcn[0].id
@@ -138,7 +137,7 @@ resource "oci_core_subnet" "public" {
 
 # Regional subnet - private
 resource "oci_core_subnet" "storage" {
-  count          = var.use_existing_vcn ? 0 : 1
+  count                      = var.use_existing_vcn ? 0 : 1
   cidr_block                 = cidrsubnet(var.vpc_cidr, 8, count.index+1)
   display_name               = "Private-Gluster"
   compartment_id             = var.compartment_ocid
@@ -153,7 +152,7 @@ resource "oci_core_subnet" "storage" {
 
 
 resource "oci_core_subnet" "fs" {
-  count          = var.use_existing_vcn ? 0 : 1
+  count                      = var.use_existing_vcn ? 0 : 1
   cidr_block                 = cidrsubnet(var.vpc_cidr, 8, count.index + 2)
   display_name               = "Private-FS-Subnet"
   compartment_id             = var.compartment_ocid

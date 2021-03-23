@@ -116,7 +116,7 @@ variable "volume_attach_device_mapping" {
 variable "region" {}
 variable "tenancy_ocid" {}
 variable "compartment_ocid" {}
-variable "ssh_public_key" {}
+variable "availablity_domain_name" {}
 
 
 /*
@@ -169,28 +169,17 @@ variable "images" {
 
 
 locals {
-  server_dual_nics = (length(regexall("^BM", var.gluster_server_shape)) > 0 ? true : false)
-  storage_subnet_domain_name=("${data.oci_core_subnet.storage_subnet.dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" )
-# (local.server_dual_nics ? "${oci_core_subnet.storage[0].dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" : "${oci_core_subnet.storage[0].dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" )
-  filesystem_subnet_domain_name= ( "${data.oci_core_subnet.fs_subnet.dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" )
-# (local.server_dual_nics ? "${oci_core_subnet.fs[0].dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" : "${oci_core_subnet.fs[0].dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" )
-  vcn_domain_name=("${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com" )
-# "${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com"
+  server_dual_nics              = (length(regexall("^BM", var.gluster_server_shape)) > 0 ? true : false)
+  storage_subnet_domain_name    = ("${data.oci_core_subnet.storage_subnet.dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com")
+  filesystem_subnet_domain_name = ("${data.oci_core_subnet.fs_subnet.dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com")
+  vcn_domain_name               = ("${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com")
   server_filesystem_vnic_hostname_prefix = "${var.gluster_server_hostname_prefix}fs-vnic-"
 
   # If ad_number is non-negative use it for AD lookup, else use ad_name.
   # Allows for use of ad_number in TF deploys, and ad_name in ORM.
   # Use of max() prevents out of index lookup call.
-  ad = "${var.ad_number >= 0 ? lookup(data.oci_identity_availability_domains.availability_domains.availability_domains[max(0,var.ad_number)],"name") : var.ad_name}"
-
 }
 
-
-
-# Not used for normal terraform apply, added for ORM deployments.
-variable "ad_name" {
-  default = ""
-}
 
 # This is currently used for the deployment. Valid values 0,1,2.
 variable "ad_number" {
@@ -222,19 +211,19 @@ variable "use_existing_vcn" {
 }
 
 variable "vcn_id" {
-  default = "ocid1.vcn.oc1.iad.amaaaaaa7rhxvoaaufglmdw7jvdeeuix3ag6zz5svee4snyzmxabb5q7hpmq"
+  default = ""
 }
 
 variable "bastion_subnet_id" {
-  default = "ocid1.subnet.oc1.iad.aaaaaaaaxkfuasory4cwkl7jyrole5gpmq5nmdnxtbmnmuxhs5rgsdmubxaq"
+  default = ""
 }
 
 variable "storage_subnet_id" {
-  default = "ocid1.subnet.oc1.iad.aaaaaaaafdditphyjamahq4eveevpci2cifpfsj53fh3a4kfw5p6ba6ymkmq"
+  default = ""
 }
 
 variable "fs_subnet_id" {
-  default = "ocid1.subnet.oc1.iad.aaaaaaaa3epu2pbkwi4ae3pvn2exeom3pmzypm7w3lunndubburic2xlte7a"
+  default = ""
 }
 
 locals {

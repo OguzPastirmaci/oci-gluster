@@ -5,37 +5,36 @@ resource "tls_private_key" "public_private_key_pair" {
 
 resource "oci_core_instance" "gluster_server" {
   count               = var.gluster_server_node_count
-  #availability_domain = data.oci_identity_availability_domains.ADs.availability_domains[(count.index%3)]["name"]
-  #availability_domain = data.oci_identity_availability_domains.ADs.availability_domains[var.AD - 1]["name"]
-  availability_domain = local.ad
+  availability_domain = var.availablity_domain_name
 
   fault_domain        = "FAULT-DOMAIN-${(count.index%3)+1}"
-  compartment_id      = "${var.compartment_ocid}"
+  compartment_id      = var.compartment_ocid
   display_name        = "${var.gluster_server_hostname_prefix}${format("%01d", count.index+1)}"
-  hostname_label      = "${var.gluster_server_hostname_prefix}${format("%01d", count.index+1)}"
   shape               = var.gluster_server_shape
-  #subnet_id           = "${oci_core_subnet.private.*.id[0]}"
-  subnet_id           = local.storage_subnet_id
 
+  create_vnic_details {
+    hostname_label      = "${var.gluster_server_hostname_prefix}${format("%01d", count.index+1)}"
+    subnet_id           = local.storage_subnet_id 
+    assign_public_ip    = false
+  }
 
   source_details {
     source_type = "image"
     source_id = (var.use_marketplace_image ? var.mp_listing_resource_id : var.images[var.region])
   }
 
-  launch_options {
-    network_type = "VFIO"
-  }
+#  launch_options {
+#    network_type = "VFIO"
+#  }
 
   metadata = {
     ssh_authorized_keys = join(
       "\n",
       [
-        var.ssh_public_key,
         tls_private_key.public_private_key_pair.public_key_openssh
       ]
     )
-    user_data = "${base64encode(join("\n", list(
+    user_data = base64encode(join("\n", list(
         "#!/usr/bin/env bash",
         "set -x",
         "gluster_yum_release=\"${var.gluster_ol_repo_mapping[var.gluster_version]}\"",
@@ -54,7 +53,7 @@ resource "oci_core_instance" "gluster_server" {
         "server_dual_nics=\"${local.server_dual_nics}\"",
         file("${var.scripts_directory}/firewall.sh"),
         file("${var.scripts_directory}/install_gluster_cluster.sh")
-      )))}"
+      )))
     }
 
   timeouts {
@@ -66,36 +65,35 @@ resource "oci_core_instance" "gluster_server" {
 
 resource "oci_core_instance" "client_node" {
   count               = var.client_node_count
-  #availability_domain = data.oci_identity_availability_domains.ADs.availability_domains[(count.index%3)]["name"]
-  #availability_domain = data.oci_identity_availability_domains.ADs.availability_domains[var.AD - 1]["name"]
-  availability_domain = local.ad
+  availability_domain = var.availablity_domain_name
   fault_domain        = "FAULT-DOMAIN-${(count.index%3)+1}"
-  compartment_id      = "${var.compartment_ocid}"
+  compartment_id      = var.compartment_ocid
   display_name        = "${var.client_node_hostname_prefix}${format("%01d", count.index+1)}"
-  hostname_label      = "${var.client_node_hostname_prefix}${format("%01d", count.index+1)}"
   shape               = var.client_node_shape
-  #subnet_id           = (local.server_dual_nics ? oci_core_subnet.privateb.*.id[0] : oci_core_subnet.privateb.*.id[0])
-  subnet_id           = local.client_subnet_id
 
+  create_vnic_details {
+    hostname_label      = "${var.client_node_hostname_prefix}${format("%01d", count.index+1)}"
+    subnet_id           = local.client_subnet_id
+    assign_public_ip    = false
+  }
 
   source_details {
     source_type = "image"
     source_id = (var.use_marketplace_image ? var.mp_listing_resource_id : var.images[var.region])
   }
 
-  launch_options {
-    network_type = "VFIO"
-  }
+#  launch_options {
+#    network_type = "VFIO"
+#  }
 
   metadata = {
     ssh_authorized_keys = join(
       "\n",
       [
-        var.ssh_public_key,
         tls_private_key.public_private_key_pair.public_key_openssh
       ]
     )
-    user_data = "${base64encode(join("\n", list(
+    user_data = base64encode(join("\n", list(
         "#!/usr/bin/env bash",
         "set -x",
         "gluster_yum_release=\"${var.gluster_ol_repo_mapping[var.gluster_version]}\"",
@@ -107,7 +105,7 @@ resource "oci_core_instance" "client_node" {
         "server_filesystem_vnic_hostname_prefix=\"${local.server_filesystem_vnic_hostname_prefix}\"",
         file("${var.scripts_directory}/firewall.sh"),
         file("${var.scripts_directory}/install_gluster_client.sh")
-      )))}"
+      )))
     }
 
   timeouts {
@@ -121,33 +119,30 @@ resource "oci_core_instance" "client_node" {
 /* bastion instances */
 resource "oci_core_instance" "bastion" {
   count = var.bastion_node_count
-  #availability_domain = data.oci_identity_availability_domains.ADs.availability_domains[var.AD - 1]["name"]
-  availability_domain = local.ad
+  availability_domain = var.availablity_domain_name
   fault_domain        = "FAULT-DOMAIN-${(count.index%3)+1}"
-  compartment_id      = "${var.compartment_ocid}"
+  compartment_id      = var.compartment_ocid
   display_name        = "${var.bastion_hostname_prefix}${format("%01d", count.index+1)}"
   shape               = var.bastion_shape
-  hostname_label      = "${var.bastion_hostname_prefix}${format("%01d", count.index+1)}"
 
   create_vnic_details {
     subnet_id              = local.bastion_subnet_id
-# "${oci_core_subnet.public.*.id[0]}"
     skip_source_dest_check = true
+    hostname_label         = "${var.bastion_hostname_prefix}${format("%01d", count.index+1)}"
   }
 
   metadata = {
     ssh_authorized_keys = join(
       "\n",
       [
-        var.ssh_public_key,
         tls_private_key.public_private_key_pair.public_key_openssh
       ]
     )
   }
 
-  launch_options {
-    network_type = "VFIO"
-  }
+#  launch_options {
+#    network_type = "VFIO"
+#  }
 
   source_details {
     source_type = "image"
