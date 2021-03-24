@@ -15,6 +15,7 @@ resource "oci_core_volume" "gluster_blockvolume" {
   display_name        = "server${count.index % var.gluster_server_node_count + 1}-brick${count.index % var.gluster_server_disk_count + 1}"
   size_in_gbs         = var.gluster_server_disk_size
   vpus_per_gb         = var.gluster_server_disk_vpus_per_gb
+  defined_tags = {"${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag.name}" = var.release }
 }
 
 resource "oci_core_volume_attachment" "blockvolume_attach" {

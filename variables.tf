@@ -3,6 +3,11 @@
 ## Defines variables and local values
 ###
 
+variable "release" {
+  description = "Reference Architecture Release (OCI Architecture Center)"
+  default     = "1.0"
+}
+
 variable "vpc_cidr" { default = "10.0.0.0/16" }
 
 # Oracle-Linux-7.6-2019.05.28-0

@@ -60,6 +60,8 @@ resource "oci_core_instance" "gluster_server" {
     create = "120m"
   }
 
+  defined_tags = {"${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag.name}" = var.release }
+
 }
 
 
@@ -112,6 +114,7 @@ resource "oci_core_instance" "client_node" {
     create = "120m"
   }
 
+  defined_tags = {"${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag.name}" = var.release }
 }
 
 
@@ -148,6 +151,9 @@ resource "oci_core_instance" "bastion" {
     source_type = "image"
     source_id   = (var.use_marketplace_image ? var.mp_listing_resource_id : var.images[var.region])
   }
+
+  defined_tags = {"${oci_identity_tag_namespace.ArchitectureCenterTagNamespace.name}.${oci_identity_tag.ArchitectureCenterTag.name}" = var.release }
+
 }
 
 # Run on 1st Gluster Server node only.
