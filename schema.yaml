@@ -8,76 +8,75 @@ groupings:
   - title: "Hidden General Configuration"
     visible: false
     variables:
-    - tenancy_ocid
-    - compartment_ocid
-    - region
-    - scripts_directory
-    - ssh_user
-    - volume_attach_device_mapping
-    - gluster_ol_repo_mapping
-    - ad_number
-    - images
-    - images1
-    - imagesC
-    - mp_listing_id
-    - mp_listing_resource_id
-    - mp_listing_resource_version
-    - use_marketplace_image
-    - marketplace_source_images
-    - release
+      - tenancy_ocid
+      - compartment_ocid
+      - region
+      - scripts_directory
+      - ssh_user
+      - volume_attach_device_mapping
+      - gluster_ol_repo_mapping
+      - ad_number
+      - images
+      - images1
+      - imagesC
+      - mp_listing_id
+      - mp_listing_resource_id
+      - mp_listing_resource_version
+      - use_marketplace_image
+      - marketplace_source_images
+      - release
 
   - title: "General Deployment Configuration"
     visible: true
     variables:
-    - vpc_cidr
-    - availablity_domain_name
-    - use_existing_vcn
+      - vpc_cidr
+      - availablity_domain_name
+      - use_existing_vcn
 
   - title: Exisiting VCN usage
-    visible: 
+    visible:
       and:
         - use_existing_vcn
     variables:
-    - vcn_id
-    - bastion_subnet_id
-    - storage_subnet_id
-    - fs_subnet_id
+      - vcn_id
+      - bastion_subnet_id
+      - storage_subnet_id
+      - fs_subnet_id
 
   - title: "Bastion Instance Configuration"
     visible: true
     variables:
-    - bastion_shape
-    - bastion_node_count
-    - bastion_hostname_prefix
+      - bastion_shape
+      - bastion_node_count
+      - bastion_hostname_prefix
 
   - title: "GlusterFS Server Instance Configuration"
     visible: true
     variables:
-    - gluster_server_shape
-    - gluster_server_node_count
-    - gluster_server_hostname_prefix
-    - gluster_server_disk_count
-    - gluster_server_disk_size
-    - gluster_server_num_of_disks_in_brick
-    - gluster_server_disk_vpus_per_gb
+      - gluster_server_shape
+      - gluster_server_node_count
+      - gluster_server_hostname_prefix
+      - gluster_server_disk_count
+      - gluster_server_disk_size
+      - gluster_server_num_of_disks_in_brick
+      - gluster_server_disk_vpus_per_gb
 
   - title: "GlusterFS Client Instance Configuration"
     visible: true
     variables:
-    - client_node_shape
-    - client_node_count
-    - client_node_hostname_prefix
-    
+      - client_node_shape
+      - client_node_count
+      - client_node_hostname_prefix
+
   - title: "GlusterFS Filesystem Configuration"
     visible: true
     variables:
-    - gluster_block_size
-    - gluster_mount_point
-    - gluster_version
-    - gluster_volume_types
-    - gluster_replica
-    - gluster_high_availability
-
+      - gluster_block_size
+      - gluster_mount_point
+      - gluster_version
+      - gluster_volume_types
+      - gluster_replica
+      - gluster_high_availability
 
 # Add variable here ,  if you want to do input validation or else it does not need to be included here.
 variables:
@@ -127,7 +126,6 @@ variables:
     type: string
     title: "FS Subnet OCID"
     description: "Already existing FS Subnet OCID to be used."
-
 
   bastion_shape:
     title: "Bastion Compute Shape"
@@ -198,9 +196,9 @@ variables:
     description: "Block volume performance"
     type: enum
     enum:
-    - "20"
-    - "10"
-    - "0"
+      - "20"
+      - "10"
+      - "0"
     required: true
     default: "10"
 
@@ -221,7 +219,7 @@ variables:
     required: false
     dependsOn:
       compartmentId: ${compartment_ocid}
-#      imageId: ${mp_listing_resource_id}
+  #      imageId: ${mp_listing_resource_id}
 
   client_node_count:
     title: "Number of clients"
@@ -253,20 +251,21 @@ variables:
     description: "Gluster version."
     type: enum
     enum:
-    - "5.9"
-    - "3.12"
+      - "6.10"
+      - "5.9"
+      - "3.12"
     required: true
-    default: "5.9"
+    default: "6.10"
 
   gluster_volume_types:
     description: "Gluster Volume Types that can be created on OCI. "
     type: enum
     enum:
-    - "Distributed"
-    - "Dispersed"
-    - "DistributedDispersed"
-    - "Replicated"
-    - "DistributedReplicated"
+      - "Distributed"
+      - "Dispersed"
+      - "DistributedDispersed"
+      - "Replicated"
+      - "DistributedReplicated"
     required: true
     default: "Distributed"
 
@@ -318,4 +317,3 @@ variables:
     type: string
     required: true
     description: "Marketplace Listing package version"
-

@@ -10,13 +10,13 @@ variable "release" {
 
 variable "vpc_cidr" { default = "10.0.0.0/16" }
 
-# Oracle-Linux-7.6-2019.05.28-0
+# Oracle-Linux-7.9-2021.05.12-0
 # https://docs.cloud.oracle.com/iaas/images/image/6180a2cb-be6c-4c78-a69f-38f2714e6b3d/
 variable "images1" {
   type = map(string)
   default = {
-    us-ashburn-1   = "ocid1.image.oc1.iad.aaaaaaaaj6pcmnh6y3hdi3ibyxhhflvp3mj2qad4nspojrnxc6pzgn2w3k5q"
-    us-phoenix-1   = "ocid1.image.oc1.phx.aaaaaaaa2wadtmv6j6zboncfobau7fracahvweue6dqipmcd5yj6s54f3wpq"
+    us-ashburn-1 = "ocid1.image.oc1.iad.aaaaaaaamoajldhwrmbzx7s4xnrajj5b7nfrnutuebgwne4bxc7vpiap3gga"
+    us-phoenix-1 = "ocid1.image.oc1.phx.aaaaaaaavheuloxjygrlqgwxfujkghrftlk3ai45wtodgnc575ycmyx2tv5q"
   }
 }
 
@@ -51,7 +51,7 @@ variable client_node_hostname_prefix { default = "g-compute-" }
   Gluster FS related variables
 */
 # Valid values "5.9" , "3.12" on Oracle Linux Operating System
-variable gluster_version { default = "5.9" }
+variable gluster_version { default = "6.10" }
 # valid values are Distributed, Dispersed , DistributedDispersed, DistributedReplicated, Replicated
 variable gluster_volume_types { default = "Distributed" }
 # replica field used only when VolumeTypes is "Replicated" or "DistributedReplicated". Otherwise assume no replication of data (replica=1 means no replication, only 1 copy of data in filesystem.)
@@ -72,7 +72,8 @@ variable "scripts_directory" { default = "scripts" }
 variable "gluster_ol_repo_mapping" {
   type = map(string)
   default = {
-    "5.9" = "http://yum.oracle.com/repo/OracleLinux/OL7/gluster5/x86_64"
+    "6.10" = "http://yum.oracle.com/repo/OracleLinux/OL7/gluster5/x86_64"
+    "5.9"  = "http://yum.oracle.com/repo/OracleLinux/OL7/gluster5/x86_64"
     "3.12" = "http://yum.oracle.com/repo/OracleLinux/OL7/gluster312/x86_64"
   }
 }
@@ -80,21 +81,21 @@ variable "gluster_ol_repo_mapping" {
 variable "volume_attach_device_mapping" {
   type = map(string)
   default = {
-    "0" = "/dev/oracleoci/oraclevdb"
-    "1" = "/dev/oracleoci/oraclevdc"
-    "2" = "/dev/oracleoci/oraclevdd"
-    "3" = "/dev/oracleoci/oraclevde"
-    "4" = "/dev/oracleoci/oraclevdf"
-    "5" = "/dev/oracleoci/oraclevdg"
-    "6" = "/dev/oracleoci/oraclevdh"
-    "7" = "/dev/oracleoci/oraclevdi"
-    "8" = "/dev/oracleoci/oraclevdj"
-    "9" = "/dev/oracleoci/oraclevdk"
+    "0"  = "/dev/oracleoci/oraclevdb"
+    "1"  = "/dev/oracleoci/oraclevdc"
+    "2"  = "/dev/oracleoci/oraclevdd"
+    "3"  = "/dev/oracleoci/oraclevde"
+    "4"  = "/dev/oracleoci/oraclevdf"
+    "5"  = "/dev/oracleoci/oraclevdg"
+    "6"  = "/dev/oracleoci/oraclevdh"
+    "7"  = "/dev/oracleoci/oraclevdi"
+    "8"  = "/dev/oracleoci/oraclevdj"
+    "9"  = "/dev/oracleoci/oraclevdk"
     "10" = "/dev/oracleoci/oraclevdl"
     "11" = "/dev/oracleoci/oraclevdm"
     "12" = "/dev/oracleoci/oraclevdn"
     "13" = "/dev/oracleoci/oraclevdo"
-    "14" = "/dev/oracleoci/oraclevdp" 
+    "14" = "/dev/oracleoci/oraclevdp"
     "15" = "/dev/oracleoci/oraclevdq"
     "16" = "/dev/oracleoci/oraclevdr"
     "17" = "/dev/oracleoci/oraclevds"
@@ -145,14 +146,14 @@ https://docs.cloud.oracle.com/iaas/images/image/ea67dd20-b247-4937-bfff-89496221
 variable "imagesC" {
   type = map(string)
   default = {
-    ap-mumbai-1 = "ocid1.image.oc1.ap-mumbai-1.aaaaaaaabfqn5vmh3pg6ynpo6bqdbg7fwruu7qgbvondjic5ccr4atlj4j7q"
-    ap-seoul-1   = "ocid1.image.oc1.ap-seoul-1.aaaaaaaaxfeztdrbpn452jk2yln7imo4leuhlqicoovoqu7cxqhkr3j2zuqa"
+    ap-mumbai-1    = "ocid1.image.oc1.ap-mumbai-1.aaaaaaaabfqn5vmh3pg6ynpo6bqdbg7fwruu7qgbvondjic5ccr4atlj4j7q"
+    ap-seoul-1     = "ocid1.image.oc1.ap-seoul-1.aaaaaaaaxfeztdrbpn452jk2yln7imo4leuhlqicoovoqu7cxqhkr3j2zuqa"
     ap-sydney-1    = "ocid1.image.oc1.ap-sydney-1.aaaaaaaanrubykp6xrff5xzd6gu2g6ul6ttnyoxgaeeq434urjz5j6wfq4fa"
-    ap-tokyo-1   = "ocid1.image.oc1.ap-tokyo-1.aaaaaaaakkqtoabcjigninsyalinvppokmgaza6amynam3gs2ldelpgesu6q"
-    ca-toronto-1 = "ocid1.image.oc1.ca-toronto-1.aaaaaaaab4hxrwlcs4tniwjr4wvqocmc7bcn3apnaapxabyg62m2ynwrpe2a"
+    ap-tokyo-1     = "ocid1.image.oc1.ap-tokyo-1.aaaaaaaakkqtoabcjigninsyalinvppokmgaza6amynam3gs2ldelpgesu6q"
+    ca-toronto-1   = "ocid1.image.oc1.ca-toronto-1.aaaaaaaab4hxrwlcs4tniwjr4wvqocmc7bcn3apnaapxabyg62m2ynwrpe2a"
     eu-frankfurt-1 = "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaawejnjwwnzapqukqudpczm4pwtpcsjhohl7qcqa5vzd3gxwmqiq3q"
-    eu-zurich-1   = "ocid1.image.oc1.eu-zurich-1.aaaaaaaa7hdfqf54qcnu3bizufapscopzdlxp54yztuxauxyraprxnqjj7ia"
-    sa-saopaulo-1 = "ocid1.image.oc1.sa-saopaulo-1.aaaaaaaa2iqobvkeowx4n2nqsgy32etohkw2srqireqqk3bhn6hv5275my6a"
+    eu-zurich-1    = "ocid1.image.oc1.eu-zurich-1.aaaaaaaa7hdfqf54qcnu3bizufapscopzdlxp54yztuxauxyraprxnqjj7ia"
+    sa-saopaulo-1  = "ocid1.image.oc1.sa-saopaulo-1.aaaaaaaa2iqobvkeowx4n2nqsgy32etohkw2srqireqqk3bhn6hv5275my6a"
     uk-london-1    = "ocid1.image.oc1.uk-london-1.aaaaaaaakgrjgpq3jej3tyqfwsyk76tl25zoflqfjjuuv43mgisrmhfniofq"
     us-ashburn-1   = "ocid1.image.oc1.iad.aaaaaaaa5phjudcfeyomogjp6jjtpcl3ozgrz6s62ltrqsfunejoj7cqxqwq"
     us-phoenix-1   = "ocid1.image.oc1.phx.aaaaaaaag7vycom7jhxqxfl6rxt5pnf5wqolksl6onuqxderkqrgy4gsi3hq"
@@ -167,17 +168,17 @@ https://docs.cloud.oracle.com/en-us/iaas/images/image/38c87774-4b0a-440a-94b2-c3
 variable "images" {
   type = map(string)
   default = {
-    us-ashburn-1   = "ocid1.image.oc1.iad.aaaaaaaasa5eukeizlabgietiktm7idhpegni42d4d3xz7kvi6nyao5aztlq"
-    us-phoenix-1   = "ocid1.image.oc1.phx.aaaaaaaajw5o3qf7cha2mgov5vxnwyctmcy4eqayy7o4w7s6cqeyppqd3smq"
+    us-ashburn-1 = "ocid1.image.oc1.iad.aaaaaaaasa5eukeizlabgietiktm7idhpegni42d4d3xz7kvi6nyao5aztlq"
+    us-phoenix-1 = "ocid1.image.oc1.phx.aaaaaaaajw5o3qf7cha2mgov5vxnwyctmcy4eqayy7o4w7s6cqeyppqd3smq"
   }
 }
 
 
 locals {
-  server_dual_nics              = (length(regexall("^BM", var.gluster_server_shape)) > 0 ? true : false)
-  storage_subnet_domain_name    = ("${data.oci_core_subnet.storage_subnet.dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com")
-  filesystem_subnet_domain_name = ("${data.oci_core_subnet.fs_subnet.dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com")
-  vcn_domain_name               = ("${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com")
+  server_dual_nics                       = (length(regexall("^BM", var.gluster_server_shape)) > 0 ? true : false)
+  storage_subnet_domain_name             = ("${data.oci_core_subnet.storage_subnet.dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com")
+  filesystem_subnet_domain_name          = ("${data.oci_core_subnet.fs_subnet.dns_label}.${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com")
+  vcn_domain_name                        = ("${data.oci_core_vcn.vcn.dns_label}.oraclevcn.com")
   server_filesystem_vnic_hostname_prefix = "${var.gluster_server_hostname_prefix}fs-vnic-"
 
   # If ad_number is non-negative use it for AD lookup, else use ad_name.
@@ -203,7 +204,7 @@ variable "mp_listing_resource_id" {
   default = "ocid1.image.oc1..aaaaaaaaqgspr7vy2xs2xdyqqvxyrdgizkxnbmq5pqwxr4rmnnbnl6cays2a"
 }
 variable "mp_listing_resource_version" {
- default = "1.0"
+  default = "1.0"
 }
 
 variable "use_marketplace_image" {
@@ -233,8 +234,8 @@ variable "fs_subnet_id" {
 
 locals {
   bastion_subnet_id = var.use_existing_vcn ? var.bastion_subnet_id : element(concat(oci_core_subnet.public.*.id, [""]), 0)
-  storage_subnet_id   = var.use_existing_vcn ? var.storage_subnet_id : element(concat(oci_core_subnet.storage.*.id, [""]), 0)
-  fs_subnet_id        = var.use_existing_vcn ? var.fs_subnet_id : element(concat(oci_core_subnet.fs.*.id, [""]), 0)
-  client_subnet_id    = var.use_existing_vcn ? var.fs_subnet_id : element(concat(oci_core_subnet.fs.*.id, [""]), 0)
+  storage_subnet_id = var.use_existing_vcn ? var.storage_subnet_id : element(concat(oci_core_subnet.storage.*.id, [""]), 0)
+  fs_subnet_id      = var.use_existing_vcn ? var.fs_subnet_id : element(concat(oci_core_subnet.fs.*.id, [""]), 0)
+  client_subnet_id  = var.use_existing_vcn ? var.fs_subnet_id : element(concat(oci_core_subnet.fs.*.id, [""]), 0)
 
 }

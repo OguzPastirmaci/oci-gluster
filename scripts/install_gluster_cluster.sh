@@ -136,7 +136,10 @@ config_node()
       yum install -y samba git nvme-cli
     else
       # Enable latest Oracle Linux Gluster release
-      yum-config-manager --add-repo $gluster_yum_release
+      #yum-config-manager --add-repo $gluster_yum_release
+      #yum install -y glusterfs-server samba git nvme-cli
+      yum install -y oracle-gluster-release-el7
+      yum-config-manager --enable ol7_gluster6 ol7_addons ol7_latest ol7_optional_latest ol7_UEKR5
       yum install -y glusterfs-server samba git nvme-cli
     fi
     touch /var/log/CONFIG_COMPLETE
