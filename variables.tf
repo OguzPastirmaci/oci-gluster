@@ -40,8 +40,8 @@ variable gluster_server_hostname_prefix { default = "g-server-" }
 
 
 # Client nodes variables
-variable client_node_shape { default = "VM.Standard2.24" }
-variable client_node_count { default = 1 }
+variable client_node_shape { default = "VM.Standard2.16" }
+variable client_node_count { default = 2 }
 variable client_node_hostname_prefix { default = "g-compute-" }
 
 
