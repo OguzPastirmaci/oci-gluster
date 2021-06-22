@@ -59,8 +59,10 @@ if [ $? -eq 0 ]; then
   yum install glusterfs glusterfs-fuse attr -y --nogpgcheck
 else
   # Enable latest Oracle Linux Gluster release
-  yum-config-manager --add-repo $gluster_yum_release
-  sudo yum install glusterfs glusterfs-fuse attr -y
+  #yum-config-manager --add-repo $gluster_yum_release
+  yum install -y oracle-gluster-release-el7
+  yum-config-manager --enable ol7_gluster6 ol7_addons ol7_latest ol7_optional_latest ol7_UEKR5
+  yum install glusterfs glusterfs-fuse attr -y
 fi
 
 ### tuned_config
